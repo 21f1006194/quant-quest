@@ -1,0 +1,13 @@
+flask
+flask-sqlalchemy
+python-dotenv
+Flask-Migrate
+Flask-login
+Flask-WTF
+flask-jwt-extended
+Flask-Restful
+requests
+celery
+redis
+email-validator
+flask-cors
