@@ -2,7 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-from .config import Config
+from app.config import Config
+from app.utils import create_admin_if_not_exists
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -16,6 +17,8 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     CORS(app)
+    with app.app_context():
+        create_admin_if_not_exists()
 
     # Register blueprints
     from .routes import common_bp
