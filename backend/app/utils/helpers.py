@@ -37,3 +37,20 @@ def create_admin_if_not_exists():
         "message": "Admin user created successfully",
         "user": admin_user.to_dict(),
     }, 201
+
+
+# ----------------- Password Strength Check -----------------
+import re
+
+
+def is_password_strong(password):
+    """Check the strength of the password."""
+    if (
+        len(password) < 8
+        or not re.search(r"[a-z]", password)
+        or not re.search(r"[A-Z]", password)
+        or not re.search(r"[0-9]", password)
+        or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)
+    ):
+        return False
+    return True
