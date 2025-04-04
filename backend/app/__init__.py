@@ -1,12 +1,14 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from app.config import Config
 from app.utils import create_admin_if_not_exists
 
 db = SQLAlchemy()
 migrate = Migrate()
+jwt = JWTManager()
 
 
 def create_app(config_class=Config):
@@ -17,6 +19,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     CORS(app)
+    jwt.init_app(app)
     with app.app_context():
         create_admin_if_not_exists()
 
