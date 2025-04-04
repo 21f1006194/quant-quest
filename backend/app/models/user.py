@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 from app import db
@@ -13,9 +13,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
-    )
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     api_token = db.Column(db.String(64), unique=True)
     api_token_created_at = db.Column(db.DateTime)
 
@@ -28,7 +26,7 @@ class User(db.Model):
     def generate_api_token(self):
         """Generate a new API token for the user"""
         self.api_token = secrets.token_urlsafe(32)
-        self.api_token_created_at = datetime.now(datetime.timezone.utc)
+        self.api_token_created_at = datetime.now(timezone.utc)
         return self.api_token
 
     def revoke_api_token(self):
