@@ -10,8 +10,8 @@ class Wallet(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
 
     balance = db.Column(db.Float, default=0.0, nullable=False)
-    currency = db.Column(db.String(10), default="INR")  # Multi-currency support (future-proof)
-    is_locked = db.Column(db.Boolean, default=False)   # For security or fraud flagging
+    currency = db.Column(db.String(10), default="INR")
+
     last_updated = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     transactions = db.relationship("Transaction", backref="wallet", cascade="all, delete", passive_deletes=True)
@@ -34,7 +34,6 @@ class Transaction(db.Model):
     metadata = db.Column(JSON, nullable=True)        # Additional data like ref_id, admin_id, etc.
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    processed_by = db.Column(db.String(50))  # 'system', 'admin', etc.
 
     __table_args__ = (
         db.Index("idx_transaction_wallet", "wallet_id"),
