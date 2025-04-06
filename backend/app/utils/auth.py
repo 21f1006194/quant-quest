@@ -5,7 +5,22 @@ from flask_jwt_extended import verify_jwt_in_request, get_jwt, jwt_required
 
 
 def api_token_required(f):
-    pass
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        api_token = request.headers.get("X-API-Token")
+
+        if not api_token:
+            return {"error": "API token is required"}, 401
+
+        user = User.query.filter_by(api_token=api_token).first()
+        if not user:
+            return {"error": "Invalid API token"}, 401
+
+        # Add user to request context for use in the route
+        request.user = user
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 def admin_required(f):
