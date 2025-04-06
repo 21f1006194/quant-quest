@@ -44,7 +44,7 @@ class Transaction(db.Model):
     type = db.Column(SQLEnum(TransactionType), nullable=False) 
     category = db.Column(SQLEnum(TransactionCategory), nullable=True) 
     description = db.Column(db.String(255))
-    metadata = db.Column(db.JSON, nullable=True)  # Additional data like ref_id, admin_id, etc.
+    transaction_info = db.Column(db.JSON, nullable=True)  # Additional data like ref_id, admin_id, etc.
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))

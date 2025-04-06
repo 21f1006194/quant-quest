@@ -10,7 +10,7 @@ class Game(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
     type = db.Column(db.String(50), nullable=True)  # e.g., 'quiz', 'puzzle', 'prediction'
-    metadata = db.Column(JSON, nullable=True)  # game configuration, rules, etc.
+    config_data = db.Column(JSON, nullable=True)  # game configuration, rules, etc.
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     sessions = db.relationship("GameSession", backref="game", cascade="all, delete", passive_deletes=True)
@@ -30,7 +30,7 @@ class GameSession(db.Model):
     result = db.Column(db.String(20))  # e.g., 'win', 'loss', 'draw'
     score = db.Column(db.Float, default=0.0)
     status = db.Column(db.String(20), default="in_progress")  # 'in_progress', 'completed', 'forfeited'
-    metadata = db.Column(JSON, nullable=True)  # gameplay-specific data
+    session_data = db.Column(JSON, nullable=True)  # gameplay-specific data
 
     bets = db.relationship("Bet", backref="session", cascade="all, delete", passive_deletes=True)
 
@@ -52,7 +52,7 @@ class Bet(db.Model):
     payout = db.Column(db.Float)  # positive or negative money flow
     choice = db.Column(db.String(100))  # what the user bet on
     is_successful = db.Column(db.Boolean)
-    metadata = db.Column(JSON, nullable=True)  # e.g., event odds, details
+    bet_details = db.Column(JSON, nullable=True)  # e.g., event odds, details
 
     __table_args__ = (
         db.Index('idx_bet_session', 'session_id'),
