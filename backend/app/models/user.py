@@ -21,7 +21,6 @@ class User(db.Model):
 
     # Relationships
     verification_tokens = db.relationship("VerificationToken", backref="user", cascade="all, delete-orphan")
-    profile = db.relationship("UserProfile", backref=db.backref("user", uselist=False), cascade="all, delete-orphan")
     game_sessions = db.relationship("GameSession", backref="user", cascade="all, delete-orphan")
     wallet = db.relationship("Wallet", backref="user", uselist=False, cascade="all, delete-orphan")
 
