@@ -16,10 +16,10 @@ class User(db.Model):
     full_name = db.Column(db.String(100), nullable=False)
 
     password_hash = db.Column(db.String(256), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
+
     email_verified = db.Column(db.Boolean, default=False)
 
-    role = db.Column(db.String(20), default="participant", nullable=False)  # 'admin' or 'participant'
+    is_admin = db.Column(db.Boolean, default=False)
 
     failed_login_attempts = db.Column(db.Integer, default=0)
     last_login = db.Column(db.DateTime)
@@ -61,9 +61,8 @@ class User(db.Model):
             "email": self.email,
             "username": self.username,
             "full_name": self.full_name,
-            "is_active": self.is_active,
+            "is_admin": self.is_admin,
             "email_verified": self.email_verified,
             "created_at": self.created_at.isoformat(),
             "last_login": self.last_login.isoformat() if self.last_login else None,
-            "role": self.role,
         }
