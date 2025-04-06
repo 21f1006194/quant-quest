@@ -10,24 +10,14 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    roll_number = db.Column(db.String(10), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    full_name = db.Column(db.String(100), nullable=False)
-
+    username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-
-    email_verified = db.Column(db.Boolean, default=False)
-
+    full_name = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-
-    failed_login_attempts = db.Column(db.Integer, default=0)
-    last_login = db.Column(db.DateTime)
-
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     api_token = db.Column(db.String(64), unique=True)
     api_token_created_at = db.Column(db.DateTime)
-
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     verification_tokens = db.relationship("VerificationToken", backref="user", cascade="all, delete-orphan")
@@ -42,11 +32,13 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def generate_api_token(self):
+        """Generate a new API token for the user"""
         self.api_token = secrets.token_urlsafe(32)
         self.api_token_created_at = datetime.now(timezone.utc)
         return self.api_token
 
     def revoke_api_token(self):
+        """Revoke the user's API token"""
         self.api_token = None
         self.api_token_created_at = None
 
@@ -54,15 +46,15 @@ class User(db.Model):
     def is_valid_iitm_email(email):
         return re.fullmatch(EMAIL_PATTERN, email) is not None
 
+
     def to_dict(self):
+        """Convert user object to dictionary"""
         return {
             "id": self.id,
-            "roll_number": self.roll_number,
             "email": self.email,
             "username": self.username,
             "full_name": self.full_name,
             "is_admin": self.is_admin,
-            "email_verified": self.email_verified,
             "created_at": self.created_at.isoformat(),
-            "last_login": self.last_login.isoformat() if self.last_login else None,
+            "has_api_token": bool(self.api_token),
         }
