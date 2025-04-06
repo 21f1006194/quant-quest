@@ -82,7 +82,7 @@ class LoginAPI(Resource):
             return {"error": "Invalid username or password"}, 401
 
         access_token = create_access_token(
-            identity=user.id,
+            identity=str(user.id),
             additional_claims={"is_admin": user.is_admin},
             expires_delta=timedelta(days=1),
         )
@@ -90,6 +90,15 @@ class LoginAPI(Resource):
         return {"access_token": access_token, "user": user.to_dict()}, 200
 
 
+class LogoutAPI(Resource):
+    @jwt_required()
+    def post(self):
+        # In JWT, we don't actually need to do anything server-side
+        # The client should remove the token from their storage
+        return {"message": "Successfully logged out"}, 200
+
+
 api.add_resource(RegisterAPI, "/register")
 api.add_resource(LoginAPI, "/login")
 api.add_resource(HealthAPI, "/health")
+api.add_resource(LogoutAPI, "/logout")

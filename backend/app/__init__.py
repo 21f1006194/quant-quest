@@ -24,8 +24,10 @@ def create_app(config_class=Config):
         create_admin_if_not_exists()
 
     # Register blueprints
-    from .routes import common_bp
+    from .routes import common_bp, admin_bp, player_bp
 
     app.register_blueprint(common_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(player_bp)
 
     return app
