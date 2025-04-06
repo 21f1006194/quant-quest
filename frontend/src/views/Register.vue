@@ -72,7 +72,10 @@ const register = async () => {
       router.push({ path: '/' })
     }, 2000)
   } catch (err) {
-    error.value = err.response?.data?.error || 'Registration failed'
+    console.error('Registration error:', err)
+    error.value = err.response?.data?.error || 
+                 err.message || 
+                 'Registration failed'
   }
 }
 </script>
