@@ -1,10 +1,15 @@
 from flask import Blueprint, jsonify
 from flask import Blueprint, request
-
-from app.models.user import User, db
-from flask_restful import Resource
-from flask_restful import Api
+from flask_jwt_extended import (
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
+from app.models import User
+from flask_restful import Resource, Api
 from app.utils import is_password_strong
+from datetime import timedelta
+from app import db
 
 common_bp = Blueprint("common", __name__)
 api = Api(common_bp)
@@ -63,5 +68,37 @@ class RegisterAPI(Resource):
         }, 201
 
 
+class LoginAPI(Resource):
+    def post(self):
+        data = request.get_json()
+        username = data.get("username")
+        password = data.get("password")
+
+        if not username or not password:
+            return {"error": "Username and password are required"}, 400
+
+        user = User.query.filter_by(username=username).first()
+        if not user or not user.check_password(password):
+            return {"error": "Invalid username or password"}, 401
+
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims={"is_admin": user.is_admin},
+            expires_delta=timedelta(days=1),
+        )
+
+        return {"access_token": access_token, "user": user.to_dict()}, 200
+
+
+class LogoutAPI(Resource):
+    @jwt_required()
+    def post(self):
+        # In JWT, we don't actually need to do anything server-side
+        # The client should remove the token from their storage
+        return {"message": "Successfully logged out"}, 200
+
+
 api.add_resource(RegisterAPI, "/register")
+api.add_resource(LoginAPI, "/login")
 api.add_resource(HealthAPI, "/health")
+api.add_resource(LogoutAPI, "/logout")
