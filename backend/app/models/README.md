@@ -1,18 +1,15 @@
 # 📘 Modular Database Schema Documentation
 
-Last Modified: 
-
-The below features a modular schema design for managing user accounts, verification flows, gameplay, wallets, audit logs, and role-based access control. Each module is defined in a separate file for scalability and clarity.
+This modular schema design manages user accounts, verification flows, gameplay, wallets, and transactions. Each module is housed in separate files for scalability and clarity.
 
 ---
 
 ## 📂 Modules Overview
 
-- **user.py**: Core user, role, and access control models.
-- **profile.py**: Extended profile fields.
-- **verification.py**: Email/password/MFA verification token management.
+- **user.py**: Core user authentication, email verification, and account status management.
+- **profile.py**: Extended profile fields - for enhanced UI.
+- **verification.py**: Email/password verification token management.
 - **wallet.py**: Wallet and transaction tracking.
-- **audit.py**: System and admin audit logging.
 - **gameplay.py**: Game sessions, bets, and gameplay data.
 
 ---
@@ -34,8 +31,6 @@ Stores core user identity and authentication data.
 | `password_hash` | String(256) | Hashed password |
 | `is_active` | Boolean | User status |
 | `email_verified` | Boolean | Email verification flag |
-| `mfa_enabled` | Boolean | MFA status |
-| `mfa_secret` | String(64) | MFA secret |
 | `failed_login_attempts` | Integer | Brute-force protection |
 | `last_login` | DateTime | Last login time |
 | `api_token` | String(64) | Session API token |
@@ -43,39 +38,9 @@ Stores core user identity and authentication data.
 | `created_at` | DateTime | Account creation timestamp |
 
 🔁 **Relationships**:
-- One-to-Many: `UserRole`, `AuditLog`, `VerificationToken`
+- One-to-Many: `VerificationToken`
 - One-to-One: `UserProfile`, `Wallet`
 
-</details>
-
----
-
-<details>
-<summary>🔐 <strong>roles</strong></summary>
-
-Defines role types in the system.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Unique role ID |
-| `name` | String(50), Unique | Role name (e.g., admin, participant) |
-| `description` | String(255) | Optional description |
-| `created_at` | DateTime | Creation time |
-</details>
-
----
-
-<details>
-<summary>👥 <strong>user_roles</strong></summary>
-
-Maps users to roles.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Unique mapping ID |
-| `user_id` | Integer, FK (`users.id`) | Linked user |
-| `role_id` | Integer, FK (`roles.id`) | Linked role |
-| `assigned_at` | DateTime | Timestamp of role assignment |
 </details>
 
 ---
@@ -153,39 +118,6 @@ Tracks wallet transactions.
 ---
 
 <details>
-<summary>📊 <strong>audit_logs</strong></summary>
-
-Logs system-wide user actions (non-admin).
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Log ID |
-| `user_id` | Integer, FK (`users.id`) | Affected user |
-| `action` | String(100) | Type of action |
-| `metadata` | Text | Extra context (e.g., IP) |
-| `timestamp` | DateTime | When it occurred |
-</details>
-
----
-
-<details>
-<summary>🛡️ <strong>admin_activity_logs</strong></summary>
-
-Tracks admin-specific actions.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Log ID |
-| `admin_id` | Integer, FK (`users.id`) | Admin user |
-| `action` | String(100) | Action name |
-| `target_user_id` | Integer, FK (`users.id`) | Affected user |
-| `metadata` | JSON | Additional info |
-| `timestamp` | DateTime | When it occurred |
-</details>
-
----
-
-<details>
 <summary>🎮 <strong>games</strong></summary>
 
 Game definition for the platform.
@@ -235,12 +167,19 @@ Betting or interaction records inside sessions.
 ## 🔗 Relationship Map
 
 - `User` ↔ `UserProfile`: One-to-One
-- `User` ↔ `UserRole`: One-to-Many
+- `User` ↔ `VerificationToken`: One-to-Many
 - `User` ↔ `Wallet`: One-to-One
-- `User` ↔ `AuditLog`, `VerificationToken`: One-to-Many
 - `Wallet` ↔ `Transaction`: One-to-Many
 - `Game` ↔ `GameSession`: One-to-Many
 - `GameSession` ↔ `Bet`: One-to-Many
 
 ---
 
+## 🔧 Adjustments Made
+
+- Removed MFA from the schema (since it's not essential)
+- Streamlined the user model and email validation, avoiding complexity like roles.
+- Removed unnecessary audit log models.
+- Verified Delete Cascade Integrities.
+
+---
