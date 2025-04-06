@@ -1,6 +1,5 @@
 from .user import User
 from .verification import VerificationToken
-from .profile import UserProfile
 from .wallet import Wallet, Transaction
 from .gameplay import Game, GameSession, Bet 
 
