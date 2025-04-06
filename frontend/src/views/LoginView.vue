@@ -40,7 +40,7 @@ const handleLogin = async () => {
     })
 
     // Use auth store to handle login
-    authStore.login(response.data.token, response.data.user)
+    authStore.login(response.data)
 
     // Redirect to homepage
     router.push('/')
