@@ -40,6 +40,7 @@ class GameSession(db.Model):
 
 
 class Bet(db.Model):
+    # Usability Not Confirmed
     __tablename__ = "bets"
 
     id = db.Column(db.Integer, primary_key=True)
