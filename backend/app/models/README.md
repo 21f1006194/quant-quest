@@ -1,185 +1,159 @@
 # 📘 Modular Database Schema Documentation
 
-This modular schema design manages user accounts, verification flows, gameplay, wallets, and transactions. Each module is housed in separate files for scalability and clarity.
+[View Interactive Diagram on dbdiagram.io](https://dbdiagram.io/d/quantix-schema-design-67f278c94f7afba18483d18f)
+
+
+This backend is designed for a game-based platform involving users, game sessions, bets, wallet transactions, and user management. The schema is fully modular and scalable for future growth.
+
+## Email Validation Format
+
+Only institute-issued IITM Data Science emails are allowed:
+
+```regex
+^\d{2}f\d{7}@ds\.study\.iitm\.ac\.in$
+```
 
 ---
 
-## 📂 Modules Overview
+## 📁 Database Schema Overview
 
-- **user.py**: Core user authentication, email verification, and account status management.
-- **profile.py**: Extended profile fields - for enhanced UI.
-- **verification.py**: Email/password verification token management.
-- **wallet.py**: Wallet and transaction tracking.
-- **gameplay.py**: Game sessions, bets, and gameplay data.
+### 1. `users` – Core User Table
 
----
+| Field         | Type              | Description |
+|---------------|-------------------|-------------|
+| `id`          | Integer (PK)      | Unique user ID |
+| `email`       | String (120)      | Unique IITM email ID (validated) |
+| `username`    | String (80)       | Unique username |
+| `password_hash` | String (256)    | Hashed password |
+| `full_name`   | String (100)      | User's full name |
+| `is_admin`    | Boolean           | Whether the user is an admin |
+| `created_at`  | DateTime          | Timestamp of account creation |
+| `api_token`   | String (64)       | API token for authentication |
+| `api_token_created_at` | DateTime | When the token was generated |
 
-## 📑 Table Descriptions
-
-<details>
-<summary>🧑 <strong>users</strong></summary>
-
-Stores core user identity and authentication data.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Unique user ID |
-| `roll_number` | String(10), Unique | Institute roll number |
-| `email` | String(120), Unique | IITM academic email |
-| `username` | String(50), Unique | User’s handle |
-| `full_name` | String(100) | Full name |
-| `password_hash` | String(256) | Hashed password |
-| `is_active` | Boolean | User status |
-| `email_verified` | Boolean | Email verification flag |
-| `failed_login_attempts` | Integer | Brute-force protection |
-| `last_login` | DateTime | Last login time |
-| `api_token` | String(64) | Session API token |
-| `api_token_created_at` | DateTime | Token issue time |
-| `created_at` | DateTime | Account creation timestamp |
-
-🔁 **Relationships**:
-- One-to-Many: `VerificationToken`
-- One-to-One: `UserProfile`, `Wallet`
-
-</details>
+#### Relationships:
+- One-to-One → `UserProfile`
+- One-to-One → `Wallet`
+- One-to-Many → `VerificationToken`
+- One-to-Many → `GameSession`
 
 ---
 
-<details>
-<summary>✅ <strong>verification_tokens</strong></summary>
+### 2. `user_profiles` – Extended Profile
 
-Manages one-time tokens for user actions.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Token ID |
-| `user_id` | Integer, FK (`users.id`) | Owner |
-| `token` | String(128) | Unique token |
-| `purpose` | String(50) | Reason (e.g., email_verification, reset) |
-| `expires_at` | DateTime | Expiry time |
-| `created_at` | DateTime | Issued time |
-| `is_used` | Boolean | Has the token been used? |
-</details>
+| Field      | Type           | Description |
+|------------|----------------|-------------|
+| `id`       | Integer (PK)   | Profile ID |
+| `user_id`  | Integer (FK)   | One-to-one link to `users.id` |
+| `bio`      | Text           | Optional user biography |
+| `avatar_url` | String(255)  | Link to avatar image |
+| `location` | String(100)    | User's location |
+| `dob`      | Date           | Date of birth |
+| `created_at` | DateTime     | Profile creation time |
+| `updated_at` | DateTime     | Updated on modification |
 
 ---
 
-<details>
-<summary>👤 <strong>user_profiles</strong></summary>
+### 3. `verification_tokens` – Secure Token Management
 
-Stores additional user profile info.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Profile ID |
-| `user_id` | Integer, FK (`users.id`), Unique | Owner |
-| `bio` | Text | Optional biography |
-| `avatar_url` | String(255) | Profile image |
-| `location` | String(100) | Geographic location |
-| `dob` | Date | Date of birth |
-| `created_at` | DateTime | Creation time |
-| `updated_at` | DateTime | Last update |
-</details>
+| Field      | Type            | Description |
+|------------|-----------------|-------------|
+| `id`       | Integer (PK)    | Token ID |
+| `user_id`  | Integer (FK)    | Belongs to a user |
+| `token`    | String(128)     | Secure random token |
+| `purpose`  | String(50)      | e.g., `email_verification`, `password_reset` |
+| `expires_at` | DateTime      | Expiry timestamp |
+| `created_at` | DateTime      | Creation time |
+| `is_used`  | Boolean         | Whether the token was already used |
 
 ---
 
-<details>
-<summary>💰 <strong>wallets</strong></summary>
+### 4. `wallets` – Virtual Wallet System
 
-Each user gets one wallet for game transactions.
+| Field         | Type            | Description |
+|---------------|-----------------|-------------|
+| `id`          | Integer (PK)    | Wallet ID |
+| `user_id`     | Integer (FK)    | One-to-one with user |
+| `balance`     | Float           | Wallet balance (default 0.0) |
+| `currency`    | String(10)      | Currency code (e.g., INR) |
+| `last_updated` | DateTime       | Timestamp of last wallet update |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Wallet ID |
-| `user_id` | Integer, FK (`users.id`), Unique | Owner |
-| `balance` | Float | Current funds |
-| `last_updated` | DateTime | Last balance update |
-
-🔁 One-to-Many: `transactions`
-</details>
+#### Relationships:
+- One-to-Many → `Transaction`
 
 ---
 
-<details>
-<summary>💸 <strong>transactions</strong></summary>
+### 5. `transactions` – Wallet Transaction Log
 
-Tracks wallet transactions.
+| Field         | Type             | Description |
+|---------------|------------------|-------------|
+| `id`          | Integer (PK)     | Transaction ID |
+| `wallet_id`   | Integer (FK)     | Belongs to a wallet |
+| `amount`      | Float            | Transaction amount |
+| `type`        | Enum             | `credit` or `debit` |
+| `category`    | Enum (optional)  | `bet`, `win`, `bonus`, `admin_adjustment` |
+| `description` | String(255)      | Optional human-readable label |
+| `metadata`    | JSON             | Optional reference data (e.g., admin, game info) |
+| `created_at`  | DateTime         | Time of creation |
+| `updated_at`  | DateTime         | Auto-updated on change |
+| `deleted_at`  | DateTime         | Soft-delete field |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Transaction ID |
-| `wallet_id` | Integer, FK (`wallets.id`) | Linked wallet |
-| `amount` | Float | Transaction value |
-| `type` | String(20) | "credit" or "debit" |
-| `category` | String(50) | Reason (e.g., bet, win, top-up) |
-| `description` | String(255) | Notes |
-| `created_at` | DateTime | Transaction time |
-</details>
-
----
-
-<details>
-<summary>🎮 <strong>games</strong></summary>
-
-Game definition for the platform.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Game ID |
-| `name` | String(100) | Game title |
-| `description` | Text | What it is |
-| `created_at` | DateTime | Entry creation |
-</details>
+#### Indexes:
+- `wallet_id`
+- `category`
+- `created_at`
 
 ---
 
-<details>
-<summary>🕹️ <strong>game_sessions</strong></summary>
+### 6. `games` – Game Metadata
 
-Tracks game sessions started by users.
+| Field         | Type            | Description |
+|---------------|-----------------|-------------|
+| `id`          | Integer (PK)    | Game ID |
+| `name`        | String(100)     | Unique game name |
+| `description` | Text            | Game description |
+| `type`        | String(50)      | E.g., `quiz`, `puzzle`, `prediction` |
+| `metadata`    | JSON            | Game-specific configuration |
+| `created_at`  | DateTime        | Game creation timestamp |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Session ID |
-| `user_id` | Integer, FK (`users.id`) | Player |
-| `game_id` | Integer, FK (`games.id`) | Game played |
-| `started_at` | DateTime | Start time |
-| `ended_at` | DateTime | End time |
-</details>
-
----
-
-<details>
-<summary>🎯 <strong>bets</strong></summary>
-
-Betting or interaction records inside sessions.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer, PK | Bet ID |
-| `session_id` | Integer, FK (`game_sessions.id`) | Parent session |
-| `amount` | Float | Bet amount |
-| `result` | String(20) | Outcome |
-| `created_at` | DateTime | When the bet was placed |
-</details>
+#### Relationships:
+- One-to-Many → `GameSession`
 
 ---
 
-## 🔗 Relationship Map
+### 7. `game_sessions` – Tracks Gameplay
 
-- `User` ↔ `UserProfile`: One-to-One
-- `User` ↔ `VerificationToken`: One-to-Many
-- `User` ↔ `Wallet`: One-to-One
-- `Wallet` ↔ `Transaction`: One-to-Many
-- `Game` ↔ `GameSession`: One-to-Many
-- `GameSession` ↔ `Bet`: One-to-Many
+| Field        | Type            | Description |
+|--------------|-----------------|-------------|
+| `id`         | Integer (PK)    | Session ID |
+| `user_id`    | Integer (FK)    | Player reference |
+| `game_id`    | Integer (FK)    | Game being played |
+| `started_at` | DateTime        | Session start |
+| `ended_at`   | DateTime        | Session end |
+| `duration`   | Interval        | Total time spent |
+| `result`     | String(20)      | E.g., `win`, `loss`, `draw` |
+| `score`      | Float           | Score obtained |
+| `status`     | String(20)      | E.g., `in_progress`, `completed`, `forfeited` |
+| `metadata`   | JSON            | Gameplay data like level, stage, etc. |
+
+#### Relationships:
+- One-to-Many → `Bet`
 
 ---
 
-## 🔧 Adjustments Made
+### 8. `bets` – In-Game Betting
 
-- Removed MFA from the schema (since it's not essential)
-- Streamlined the user model and email validation, avoiding complexity like roles.
-- Removed unnecessary audit log models.
-- Verified Delete Cascade Integrities.
+| Field        | Type            | Description |
+|--------------|-----------------|-------------|
+| `id`         | Integer (PK)    | Bet ID |
+| `session_id` | Integer (FK)    | Linked to a game session |
+| `amount`     | Float           | Amount wagered |
+| `placed_at`  | DateTime        | When the bet was placed |
+| `outcome`    | String(20)      | E.g., `win`, `loss` |
+| `payout`     | Float           | Resulting money change |
+| `choice`     | String(100)     | The user's chosen answer/prediction |
+| `is_successful` | Boolean      | Whether the bet was successful |
+| `metadata`   | JSON            | Odds, context, etc. |
 
 ---
+
