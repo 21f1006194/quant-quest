@@ -3,8 +3,8 @@
     <h2>Login</h2>
     <form @submit.prevent="handleLogin">
       <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input v-model="email" type="email" class="form-control" required />
+        <label class="form-label">Username</label>
+        <input v-model="username" type="text" class="form-control" required />
       </div>
 
       <div class="mb-3">
@@ -22,24 +22,25 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/authStore'
 import api from '@/services/api' 
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const error = ref('')
 const router = useRouter()
+const authStore = useAuthStore()
 
 const handleLogin = async () => {
   error.value = ''
   try {
     const response = await api.post('/login', {
-      email: email.value,
+      username: username.value,
       password: password.value
     })
 
-    // Store token in localStorage
-    const token = response.data.token
-    localStorage.setItem('token', token)
+    // Use auth store to handle login
+    authStore.login(response.data.token, response.data.user)
 
     // Redirect to homepage
     router.push('/')
