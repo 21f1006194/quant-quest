@@ -13,8 +13,14 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">About</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Login</a>
+                <li class="nav-item" v-if="!authStore.isAuthenticated">
+                    <router-link class="nav-link" to="/login">Login</router-link>
+                </li>
+                <li class="nav-item" v-if="!authStore.isAuthenticated">
+                    <router-link class="nav-link" to="/register">Register</router-link>
+                </li>
+                <li class="nav-item" v-if="authStore.isAuthenticated">
+                    <button class="nav-link btn btn-link" @click="logout">Logout</button>
                 </li>
             </ul>
         </div>
@@ -28,6 +34,7 @@
 <script setup>
 import { useAuthStore } from '../store/authStore';
 import { useRouter } from 'vue-router';
+import { computed, watchEffect } from 'vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -37,7 +44,14 @@ const logout = () => {
     authStore.logout();
     router.push('/login');
 };
+watchEffect(() => {
+  authStore.checkAuth(); // Ensure auth state is up-to-date
+});
 </script>
 
 <style scoped>
+.nav-link.btn {
+  padding: 0;
+  margin-left: 1rem;
+}
 </style>
