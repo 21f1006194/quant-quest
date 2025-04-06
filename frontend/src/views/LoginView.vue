@@ -34,16 +34,34 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const email = ref('')
 const password = ref('')
+const error = ref(null)
+const router = useRouter()
 
-function handleLogin() {
-  if (email.value && password.value) {
-    alert(`Logged in as ${email.value}`)
-    // Replace with real API call or routing
-  } else {
-    alert('Please fill in all fields')
+async function handleLogin() {
+  error.value = null
+  try {
+    const res = await axios.post('https://your-api.com/api/login', {
+      email: email.value,
+      password: password.value
+    })
+    localStorage.setItem('token', res.data.token)
+    router.push('/') // Redirect to homepage or dashboard
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Login failed'
   }
 }
 </script>
+
+<style scoped>
+.input {
+  @apply w-full px-3 py-2 border rounded;
+}
+.btn {
+  @apply w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700;
+}
+</style>
