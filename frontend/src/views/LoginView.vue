@@ -1,67 +1,50 @@
 <template>
-  <div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
-      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
-      <form @submit.prevent="handleLogin">
-        <div class="mb-4">
-          <label class="block mb-1 font-semibold">Email</label>
-          <input
-            type="email"
-            v-model="email"
-            required
-            class="w-full px-3 py-2 border rounded"
-          />
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1 font-semibold">Password</label>
-          <input
-            type="password"
-            v-model="password"
-            required
-            class="w-full px-3 py-2 border rounded"
-          />
-        </div>
-        <button
-          type="submit"
-          class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Login
-        </button>
-      </form>
-    </div>
+  <div class="container mt-5" style="max-width: 400px;">
+    <h2>Login</h2>
+    <form @submit.prevent="handleLogin">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input v-model="email" type="email" class="form-control" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input v-model="password" type="password" class="form-control" required />
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+
+    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/services/api' 
 
 const email = ref('')
 const password = ref('')
-const error = ref(null)
+const error = ref('')
 const router = useRouter()
 
-async function handleLogin() {
-  error.value = null
+const handleLogin = async () => {
+  error.value = ''
   try {
-    const res = await axios.post('https://your-api.com/api/login', {
+    const response = await api.post('/login', {
       email: email.value,
       password: password.value
     })
-    localStorage.setItem('token', res.data.token)
-    router.push('/') // Redirect to homepage or dashboard
+
+    // Store token in localStorage
+    const token = response.data.token
+    localStorage.setItem('token', token)
+
+    // Redirect to homepage
+    router.push('/')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Login failed'
+    error.value = err.response?.data?.error || 'Login failed'
   }
 }
 </script>
-
-<style scoped>
-.input {
-  @apply w-full px-3 py-2 border rounded;
-}
-.btn {
-  @apply w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700;
-}
-</style>
