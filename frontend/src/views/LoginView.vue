@@ -43,7 +43,11 @@ const handleLogin = async () => {
     authStore.login(response.data)
 
     // Redirect to homepage
-    router.push('/')
+    if (authStore.isAdmin) {
+      router.push('/admin')
+    } else {
+      router.push('/player')
+    }
   } catch (err) {
     error.value = err.response?.data?.error || 'Login failed'
   }
