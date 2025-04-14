@@ -67,6 +67,7 @@
 <script setup>
 import { useAuthStore } from '../store/authStore';
 import { useRouter } from 'vue-router';
+import { computed, watchEffect } from 'vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -75,6 +76,9 @@ const logout = () => {
     authStore.logout();
     router.push('/login');
 };
+watchEffect(() => {
+  authStore.checkAuth(); // Ensure auth state is up-to-date
+});
 </script>
 
 <style scoped>
