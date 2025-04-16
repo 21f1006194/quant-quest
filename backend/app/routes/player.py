@@ -13,39 +13,38 @@ api = Api(player_bp)
 IST = pytz.timezone("Asia/Kolkata") # IST in Profile but UTC in DB
 
 
-class PlayerProfile(Resource): 
+class PlayerProfile(Resource):
     @jwt_required()
     def get(self):
-        """Player dashboard with profile, wallet info, and last 20 (n = 20, open to be modified) bets"""
         user_id = int(get_jwt_identity())
-        
-        # Fetching the user with joined profile and wallet data
-        try:
-            user = (
-                User.query
-                .options(joinedload(User.profile), joinedload(User.wallet))
-                .get(user_id)
-            )
-        except Exception as e:
-            return {"error": f"Error fetching user: {str(e)}"}, 500
-        
+        user = User.query.options(joinedload(User.profile)).get(user_id)
+
         if not user:
             return {"error": "User not found"}, 404
 
-        # Profile data
-        profile = user.to_dict()
+        return {"profile": user.to_dict()}, 200
+    
+class WalletInfo(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = int(get_jwt_identity())
+        user = User.query.options(joinedload(User.wallet)).get(user_id)
 
-        # Wallet data with error handling
-        if user.wallet:
-            wallet = {
-                "balance": user.wallet.balance,
-                "currency": user.wallet.currency,
-                "last_updated": user.wallet.last_updated.astimezone(IST).isoformat() if user.wallet.last_updated else None,
-            }
-        else:
-            wallet = {"balance": 0.0, "currency": "INR", "last_updated": None}
+        if not user:
+            return {"error": "User not found"}, 404
 
-        # Fetching the latest (Atmost) 20 bets of the user
+        wallet = user.wallet
+        wallet_data = {
+            "balance": wallet.balance if wallet else 0.0,
+            "currency": wallet.currency if wallet else "INR",
+            "last_updated": wallet.last_updated.astimezone(IST).isoformat() if wallet and wallet.last_updated else None,
+        }
+        return {"wallet": wallet_data}, 200
+
+class RecentBets(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = int(get_jwt_identity())
         try:
             recent_bets = (
                 db.session.query(Bet)
@@ -59,11 +58,9 @@ class PlayerProfile(Resource):
         except Exception as e:
             return {"error": f"Error fetching bets: {str(e)}"}, 500
 
-        # Bet data and convert timestamps to IST
         bets = []
         for bet in recent_bets:
             game = bet.session.game
-            placed_at_ist = bet.placed_at.astimezone(IST).isoformat() if bet.placed_at else None
             bets.append({
                 "game_id": game.id,
                 "game_name": game.name,
@@ -72,15 +69,12 @@ class PlayerProfile(Resource):
                 "outcome": bet.outcome,
                 "payout": bet.payout,
                 "is_successful": bet.is_successful,
-                "placed_at": placed_at_ist,
+                "placed_at": bet.placed_at.astimezone(IST).isoformat() if bet.placed_at else None,
                 "bet_details": bet.bet_details,
             })
 
-        return {
-            "profile": profile,
-            "wallet": wallet,
-            "recent_bets": bets if recent_bets else []
-        }, 200
+        return {"recent_bets": bets}, 200
+
 
 
 class APIToken(Resource):
@@ -136,3 +130,5 @@ class APIToken(Resource):
 
 api.add_resource(APIToken, "/api-token")
 api.add_resource(PlayerProfile, "/profile")
+api.add_resource(WalletInfo, "/wallet")
+api.add_resource(RecentBets, "/recent-bets")
