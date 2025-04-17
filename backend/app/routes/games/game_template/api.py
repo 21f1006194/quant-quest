@@ -1,19 +1,17 @@
 from flask_restful import Resource
 
+## To have custom functions for status, description, control;
+## We can inherit from BaseGameAPI and override the methods
+# from app.routes.base_game import BaseGameAPI
 
-class GameStatusAPI(Resource):
-    def get(self):
-        return {"status": "active"}
+# class GameStatusAPI(BaseGameAPI):
+#     pass
 
+# class GameDescriptionAPI(BaseGameAPI):
+#     pass
 
-class GameDescriptionAPI(Resource):
-    def get(self):
-        return {"description": "Your game description here"}
-
-
-class GameControlAPI(Resource):
-    def get(self):
-        return {"control": {"rate_limit": 5, "max_trials": 10}}
+# class GameControlAPI(BaseGameAPI):
+#     pass
 
 
 class GamePlayAPI(Resource):

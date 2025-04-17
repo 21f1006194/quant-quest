@@ -1,0 +1,9 @@
+{
+    "type": "stateless/stateful",
+    "ignore": true,
+    "default_is_active": false,
+    "default_config": {
+        "max_turns": 1000,
+        "max_bet": 100
+    }
+}
