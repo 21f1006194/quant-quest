@@ -16,7 +16,7 @@ class User(db.Model):
     full_name = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    api_token = db.Column(db.String(64), unique=True)
+    _api_token = db.Column("api_token", db.String(64), unique=True)
     api_token_created_at = db.Column(db.DateTime)
 
     # Relationships
@@ -33,19 +33,39 @@ class User(db.Model):
 
     def generate_api_token(self):
         """Generate a new API token for the user"""
-        self.api_token = secrets.token_urlsafe(32)
+        self._api_token = secrets.token_urlsafe(32)
         self.api_token_created_at = datetime.now(timezone.utc)
         return self.api_token
 
+    @property
+    def api_token(self):
+        """Get the full API token with user ID"""
+        if not self._api_token:
+            return None
+        return f"{self.id}.{self._api_token}"
+
     def revoke_api_token(self):
         """Revoke the user's API token"""
-        self.api_token = None
+        self._api_token = None
         self.api_token_created_at = None
+
+    @staticmethod
+    def validate_api_token(api_token):
+        """Validate the API token and return the user if valid"""
+        if not api_token:
+            return None
+        try:
+            user_id, token = api_token.split(".")
+            user = User.query.get(user_id)
+            if not user or not user._api_token or user._api_token != token:
+                return None
+            return user
+        except (ValueError, AttributeError):
+            return None
 
     @staticmethod
     def is_valid_iitm_email(email):
         return re.fullmatch(EMAIL_PATTERN, email) is not None
-
 
     def to_dict(self):
         """Convert user object to dictionary"""
@@ -56,5 +76,5 @@ class User(db.Model):
             "full_name": self.full_name,
             "is_admin": self.is_admin,
             "created_at": self.created_at.isoformat(),
-            "has_api_token": bool(self.api_token),
+            "has_api_token": bool(self._api_token),
         }

@@ -50,6 +50,7 @@ class RegisterAPI(Resource):
             is_admin=False,
         )
         user.set_password(data["password"])
+        user.generate_api_token()
 
         try:
             db.session.add(user)

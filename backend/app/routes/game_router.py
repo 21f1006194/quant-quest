@@ -125,6 +125,7 @@ def add_game_routes(game_name, mod):
             endpoint=f"{game_name}_control",
             resource_class_kwargs={"game_name": game_name},
         )
+        print(f"Added game routes for {game_name}")
         return True
     except Exception as e:
         print(f"Error adding game routes: {e}")
@@ -138,6 +139,7 @@ def add_game_play_routes(game_name, mod):
             play_api.add_resource(
                 mod.GamePlayAPI, f"/play/{game_name}", endpoint=f"{game_name}_play"
             )
+            print(f"Added play routes for {game_name}")
         return True
     except Exception as e:
         print(f"Error adding play routes: {e}")
