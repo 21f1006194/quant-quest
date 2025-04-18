@@ -27,7 +27,7 @@ def create_app(config_class=Config):
     from .routes import common_bp, admin_bp, player_bp, game_bp
 
     app.register_blueprint(common_bp)
-    app.register_blueprint(admin_bp)
+    app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(player_bp)
     app.register_blueprint(game_bp)
     return app
