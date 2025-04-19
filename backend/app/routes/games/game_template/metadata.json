@@ -1,0 +1,12 @@
+{
+    "type": "stateless/stateful",
+    "ignore": true,
+    "default_max_sessions_per_user": 100,
+    "default_max_bets_per_session": 1,
+    "default_is_active": false,
+    "default_config": {
+        "max_bet_amount": 100,
+        "min_bet_amount": 10,
+        "payout": 2
+    }
+}
