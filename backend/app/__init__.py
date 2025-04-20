@@ -11,6 +11,15 @@ migrate = Migrate()
 jwt = JWTManager()
 
 
+def initialize_app(app):
+    """Initialize application data after database is ready"""
+    with app.app_context():
+        create_admin_if_not_exists()
+        from .routes.game_router import register_all_games
+
+        register_all_games(app)
+
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -20,14 +29,14 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     CORS(app)
     jwt.init_app(app)
-    with app.app_context():
-        create_admin_if_not_exists()
 
     # Register blueprints
-    from .routes import common_bp, admin_bp, player_bp, game_bp
+    from .routes import common_bp, admin_bp, player_bp, game_bp, play_bp
 
     app.register_blueprint(common_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(player_bp)
     app.register_blueprint(game_bp)
+    app.register_blueprint(play_bp)
+
     return app
