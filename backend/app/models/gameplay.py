@@ -23,6 +23,18 @@ class Game(db.Model):
         "GameSession", backref="game", cascade="all, delete", passive_deletes=True
     )
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "type": self.type,
+            "max_sessions_per_user": self.max_sessions_per_user,
+            "max_bets_per_session": self.max_bets_per_session,
+            "config_data": self.config_data,
+            "is_active": self.is_active,
+        }
+
 
 class GameSession(db.Model):
     __tablename__ = "game_sessions"

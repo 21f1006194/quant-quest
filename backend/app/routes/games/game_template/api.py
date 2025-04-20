@@ -1,14 +1,12 @@
 from flask_restful import Resource
 from app.utils.auth import api_token_required, get_api_user
 
-## To have custom functions for status, description, control;
+## To have custom functions for info, control;
 ## We can inherit from BaseGameAPI and override the methods
 # from app.routes.base_game import BaseGameAPI
 
-# class GameStatusAPI(BaseGameAPI):
-#     pass
 
-# class GameDescriptionAPI(BaseGameAPI):
+# class GameInfoAPI(BaseGameAPI):
 #     pass
 
 # class GameControlAPI(BaseGameAPI):
