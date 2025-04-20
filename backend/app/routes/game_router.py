@@ -75,46 +75,24 @@ def add_game_routes(game_name, mod):
     """Add common game routes (status, description, control)"""
     try:
         # Define default API classes outside the if blocks
-        class DefaultGameStatusAPI(BaseGameAPI):
-            def get(self):
-                return self.get_status()
-
-        class DefaultGameDescriptionAPI(BaseGameAPI):
-            def get(self):
-                return self.get_description()
-
         class DefaultGameControlAPI(BaseGameAPI):
-            def get(self):
-                return self.get_control()
-
             def post(self):
-                data = request.get_json()
-                return self.update_control(data)
+                return self.update_control(request.get_json())
 
-        # Status API
-        GameStatusAPI = (
-            mod.GameStatusAPI if hasattr(mod, "GameStatusAPI") else DefaultGameStatusAPI
+        class DefaultGameInfoAPI(BaseGameAPI):
+            def get(self):
+                return self.get_info()
+
+        # Info API
+        GameInfoAPI = (
+            mod.GameInfoAPI if hasattr(mod, "GameInfoAPI") else DefaultGameInfoAPI
         )
         game_api.add_resource(
-            GameStatusAPI,
-            f"/game/{game_name}/status",
-            endpoint=f"{game_name}_status",
+            GameInfoAPI,
+            f"/game/{game_name}/info",
+            endpoint=f"{game_name}_info",
             resource_class_kwargs={"game_name": game_name},
         )
-
-        # Description API
-        GameDescriptionAPI = (
-            mod.GameDescriptionAPI
-            if hasattr(mod, "GameDescriptionAPI")
-            else DefaultGameDescriptionAPI
-        )
-        game_api.add_resource(
-            GameDescriptionAPI,
-            f"/game/{game_name}/description",
-            endpoint=f"{game_name}_description",
-            resource_class_kwargs={"game_name": game_name},
-        )
-
         # Control API
         GameControlAPI = (
             mod.GameControlAPI

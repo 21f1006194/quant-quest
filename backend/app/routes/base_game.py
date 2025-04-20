@@ -13,35 +13,15 @@ class BaseGameAPI(Resource):
         self.game = Game.query.filter_by(name=self.game_name).first()
 
     @jwt_required()
-    def get_status(self):
+    def get_info(self):
         if not self.game:
             return {"error": "Game not found"}, 404
-        return {
-            "name": self.game.name,
-            "is_active": self.game.is_active,
-        }
-
-    def get_description(self):
-        if not self.game:
-            return {"error": "Game not found"}, 404
-        return {
-            "name": self.game.name,
-            "is_active": self.game.is_active,
-            "description": self.game.description,
-        }
-
-    @admin_required
-    def get_control(self):
-        if not self.game:
-            return {"error": "Game not found"}, 404
-        return {
-            "is_active": self.game.is_active,
-            "config": self.game.config_data,
-        }
+        return self.game.to_dict()
 
     @admin_required
     def update_control(self, data):
-        """Update game control settings"""
+        """Update game control settings like is_active, config_data,
+        max_sessions_per_user, max_bets_per_session"""
         if not self.game:
             return {"error": "Game not found"}, 404
 
@@ -51,6 +31,10 @@ class BaseGameAPI(Resource):
             if "config" in data:
                 ## TODO: Validate config data format with existing config
                 self.game.config_data.update(data["config"])
+            if "max_sessions_per_user" in data:
+                self.game.max_sessions_per_user = int(data["max_sessions_per_user"])
+            if "max_bets_per_session" in data:
+                self.game.max_bets_per_session = int(data["max_bets_per_session"])
 
             db.session.commit()
             return {"message": "Game control updated successfully"}
