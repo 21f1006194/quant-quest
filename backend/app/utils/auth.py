@@ -12,15 +12,22 @@ def api_token_required(f):
         if not api_token:
             return {"error": "API token is required"}, 401
 
-        user = User.query.filter_by(api_token=api_token).first()
+        # Validate token and get user
+        user = User.validate_api_token(api_token)
         if not user:
             return {"error": "Invalid API token"}, 401
 
-        # Add user to request context for use in the route
+        # Store user in request context
         request.user = user
         return f(*args, **kwargs)
 
     return decorated
+
+
+def get_api_user():
+    """Get the user from the request context when using API token authentication"""
+    user = getattr(request, "user", None)
+    return user if user else None
 
 
 def admin_required(f):
