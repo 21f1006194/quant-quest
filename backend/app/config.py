@@ -17,3 +17,8 @@ class Config:
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or SECRET_KEY
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)
     JWT_ERROR_MESSAGE_KEY = "error"
+
+    # Redis Configuration
+    REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+    REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+    REDIS_DB = int(os.environ.get("REDIS_DB", 0))
