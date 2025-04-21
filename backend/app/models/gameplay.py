@@ -20,7 +20,10 @@ class Game(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     sessions = db.relationship(
-        "GameSession", backref="game", cascade="all, delete", passive_deletes=True
+        "GameSession",
+        back_populates="game",
+        cascade="all, delete",
+        passive_deletes=True,
     )
 
     def to_dict(self):
@@ -63,6 +66,8 @@ class GameSession(db.Model):
     bets = db.relationship(
         "Bet", backref="session", cascade="all, delete", passive_deletes=True
     )
+
+    game = db.relationship("Game", back_populates="sessions")
 
     __table_args__ = (
         db.Index("idx_session_user_game", "user_id", "game_id"),
