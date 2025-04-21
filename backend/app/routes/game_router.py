@@ -83,6 +83,10 @@ def add_game_routes(game_name, mod):
             def get(self):
                 return self.get_info()
 
+        class DefaultGameTemplateAPI(BaseGameAPI):
+            def get(self):
+                return self.template()
+
         # Info API
         GameInfoAPI = (
             mod.GameInfoAPI if hasattr(mod, "GameInfoAPI") else DefaultGameInfoAPI
@@ -103,6 +107,19 @@ def add_game_routes(game_name, mod):
             GameControlAPI,
             f"/game/{game_name}/control",
             endpoint=f"{game_name}_control",
+            resource_class_kwargs={"game_name": game_name},
+        )
+
+        # Template API
+        GameTemplateAPI = (
+            mod.GameTemplateAPI
+            if hasattr(mod, "GameTemplateAPI")
+            else DefaultGameTemplateAPI
+        )
+        game_api.add_resource(
+            GameTemplateAPI,
+            f"/game/{game_name}/template",
+            endpoint=f"{game_name}_template",
             resource_class_kwargs={"game_name": game_name},
         )
         print(f"Added game routes for {game_name}")
