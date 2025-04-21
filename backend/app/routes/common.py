@@ -99,6 +99,28 @@ class LogoutAPI(Resource):
         return {"message": "Successfully logged out"}, 200
 
 
+@common_bp.route('/auth/login', methods=['POST'])
+def login():
+    """Authenticate user and return a JWT"""
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    # Validate user credentials
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.check_password(password):
+        return jsonify({"error": "Invalid username or password"}), 401
+
+    # Create JWT with admin claim if user is an admin
+    additional_claims = {"is_admin": user.is_admin}
+    access_token = create_access_token(identity=user.id, additional_claims=additional_claims)
+
+    return jsonify({"access_token": access_token}), 200
+
+
 api.add_resource(RegisterAPI, "/register")
 api.add_resource(LoginAPI, "/login")
 api.add_resource(HealthAPI, "/health")
