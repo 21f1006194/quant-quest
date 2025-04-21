@@ -1,9 +1,13 @@
 # backend/app/routes/base_game.py
+import os
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 from app.models.gameplay import Game
 from app import db
 from app.utils.auth import admin_required
+
+
+GAMES_DIR = os.path.join(os.path.dirname(__file__), "games")
 
 
 class BaseGameAPI(Resource):
@@ -41,3 +45,13 @@ class BaseGameAPI(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
+    @jwt_required()
+    def template(self):
+        template_path = os.path.join(GAMES_DIR, self.game_name, "template.py")
+        if not os.path.exists(template_path):
+            return {"error": "Template not found"}, 404
+        with open(template_path, "r") as f:
+            template = f.read()
+
+        return template
