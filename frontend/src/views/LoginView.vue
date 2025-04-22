@@ -45,8 +45,10 @@ const handleLogin = async () => {
     // Redirect to homepage
     if (authStore.isAdmin) {
       router.push('/admin')
-    } else {
+    } else if (authStore.isUser) {
       router.push('/player')
+    } else {
+      error.value = 'Invalid user role'
     }
   } catch (err) {
     error.value = err.response?.data?.error || 'Login failed'
