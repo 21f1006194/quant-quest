@@ -88,7 +88,11 @@ class LoginAPI(Resource):
             expires_delta=timedelta(days=1),
         )
 
-        return {"access_token": access_token, "user": user.to_dict()}, 200
+        return {
+            "access_token": access_token,
+            "api_token": user.api_token,
+            "user": user.to_dict(),
+        }, 200
 
 
 class LogoutAPI(Resource):
