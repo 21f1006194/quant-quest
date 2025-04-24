@@ -1,7 +1,9 @@
 from flask_restful import Resource
-from flask import Blueprint
+from flask import Blueprint, request, jsonify
 from flask_restful import Api
 from app.utils.auth import admin_required
+from app.models.gameplay import Game
+from app import db
 
 admin_bp = Blueprint("admin", __name__)
 api = Api(admin_bp)
@@ -39,6 +41,23 @@ class AdminDashboardAPI(Resource):
             ]
         }
         return data, 200
+
+@admin_bp.route('/admin/games/<int:game_id>/toggle', methods=['POST'])
+@admin_required
+def toggle_game_status(game_id):
+    """Toggle the active status of a game."""
+    game = Game.query.get(game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    data = request.get_json()
+    is_active = data.get("isActive")
+    if is_active is None:
+        return jsonify({"error": "Missing 'isActive' field"}), 400
+
+    game.is_active = is_active
+    db.session.commit()
+    return jsonify({"message": "Game status updated", "game": {"id": game.id, "name": game.name, "isActive": game.is_active}})
 
 api.add_resource(AdminAPI, "/admin")
 api.add_resource(AdminDashboardAPI, "/admin/dashboard")

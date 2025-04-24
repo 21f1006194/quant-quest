@@ -9,9 +9,14 @@
       </div>
       <div class="card">
         <h2>Total Games</h2>
-        <p>{{ totalGames }}</p>
-        <GameToggle v-for="game in games" :key="game.id" :gameId="game.id" :gameName="game.name"
-          :isActive="game.isActive" @toggle="handleGameToggle" />
+        <ul>
+          <li v-for="game in games" :key="game.id">
+            {{ game.name }}
+            <button @click="toggleGame(game.id, !game.isActive)">
+              {{ game.isActive ? "Deactivate" : "Activate" }}
+            </button>
+          </li>
+        </ul>
       </div>
       <div class="card">
         <h2>Game Scores</h2>
@@ -86,6 +91,16 @@ const updateRateLimit = async (id) => {
     }
   } catch (error) {
     console.error('Error updating rate limit:', error);
+  }
+};
+
+const toggleGame = async (gameId, isActive) => {
+  try {
+    await api.post(`/admin/games/${gameId}/toggle`, { isActive });
+    const game = games.value.find((g) => g.id === gameId);
+    if (game) game.isActive = isActive;
+  } catch (error) {
+    console.error('Error toggling game status:', error);
   }
 };
 

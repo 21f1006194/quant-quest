@@ -23,7 +23,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/authStore'
-import api from '@/services/api' 
+import api from '@/services/api'
 
 const username = ref('')
 const password = ref('')
