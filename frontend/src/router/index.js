@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from '../store/authStore';
-
+import { getGameinfo } from '@/services/gameService';
 import HomeView from "../views/HomeView.vue";
 import AboutView from "../views/AboutView.vue";
 import LoginView from "../views/LoginView.vue";
@@ -36,18 +36,36 @@ const router = createRouter({
                 {
                     path: '',
                     component: () => import('@/games/GameNotFound.vue'),
-                    beforeEnter: (to) => {
+                    beforeEnter: async (to) => {
                         const gameName = to.params.gameName;
-                        return import(`@/games/${gameName}/GamePage.vue`)
-                            .then(module => {
-                                to.matched[0].components.default = module.default;
-                            })
-                            .catch(() => {
-                                // Keep the default GameNotFound component
-                            });
+                        try {
+                            // Fetch game info
+                            const gameData = await getGameinfo(gameName);
+
+                            // If game is not active, redirect to a not active page
+                            if (!gameData.is_active) {
+                                return { name: 'GameNotActive', params: { gameName } };
+                            }
+
+                            // Try to load the game component
+                            const module = await import(`@/games/${gameName}/GamePage.vue`);
+                            to.matched[0].components.default = module.default;
+
+                            // Pass game data to the component
+                            to.meta.gameData = gameData;
+                        } catch (error) {
+                            console.error('Error loading game:', error);
+                            // Keep the default GameNotFound component
+                        }
                     }
                 }
             ]
+        },
+        {
+            path: '/game/:gameName/not-active',
+            name: 'GameNotActive',
+            component: () => import('@/games/GameNotActive.vue'),
+            meta: { requiresUser: true }
         }
     ],
 });
