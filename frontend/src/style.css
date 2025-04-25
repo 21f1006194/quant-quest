@@ -91,6 +91,11 @@ a:hover {
     background-color: var(--secondary-color);
 }
 
+.game-page {
+    width: 80%;
+    margin: 0 auto;
+}
+
 /* Forms */
 input,
 textarea,

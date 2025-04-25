@@ -50,21 +50,12 @@ class GameSession(db.Model):
         db.Integer, db.ForeignKey("games.id", ondelete="CASCADE"), nullable=False
     )
 
-    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    ended_at = db.Column(db.DateTime)
-    duration = db.Column(db.Interval)
-
-    result = db.Column(db.String(20))  # e.g., 'win', 'loss', 'draw'
-    score = db.Column(db.Float, default=0.0)
-    status = db.Column(
-        db.String(20), default="in_progress"
-    )  # 'in_progress', 'completed', 'forfeited'
     session_data = db.Column(JSON, nullable=True)  # gameplay-specific data
     bet_count = db.Column(db.Integer, default=0, nullable=False)  # Track number of bets
     max_bets_per_session = db.Column(db.Integer, nullable=False)  # Copied from game
 
     bets = db.relationship(
-        "Bet", backref="session", cascade="all, delete", passive_deletes=True
+        "Bet", back_populates="session", cascade="all, delete", passive_deletes=True
     )
 
     game = db.relationship("Game", back_populates="sessions")
@@ -75,6 +66,13 @@ class GameSession(db.Model):
             "bet_count <= max_bets_per_session", name="check_bet_count_limit"
         ),
     )
+
+    @property
+    def net_flow(self):
+        """Calculate the net flow (profit/loss) for this session.
+        Returns the sum of all bet net flows.
+        """
+        return sum(bet.net_flow for bet in self.bets)
 
     def __init__(self, **kwargs):
         user_id = kwargs.get("user_id")
@@ -113,16 +111,33 @@ class Bet(db.Model):
         db.ForeignKey("game_sessions.id", ondelete="CASCADE"),
         nullable=False,
     )
+    game_id = db.Column(
+        db.Integer,
+        db.ForeignKey("games.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     amount = db.Column(db.Float, nullable=False)
     placed_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    outcome = db.Column(db.String(20))  # e.g., 'win', 'loss'
-    payout = db.Column(db.Float)  # positive or negative money flow
-    choice = db.Column(db.String(100))  # what the user bet on
-    is_successful = db.Column(db.Boolean)
-    bet_details = db.Column(JSON, nullable=True)  # e.g., event odds, details
+    payout = db.Column(db.Float, nullable=False)
+    choice = db.Column(db.String(100), nullable=False)
+    bet_details = db.Column(JSON, nullable=True)
 
-    __table_args__ = (db.Index("idx_bet_session", "session_id"),)
+    __table_args__ = (db.Index("idx_bet_session", "session_id", "game_id", "user_id"),)
+
+    session = db.relationship("GameSession", back_populates="bets")
+
+    @property
+    def net_flow(self):
+        """Calculate the net flow (profit/loss) for this bet.
+        Returns the difference between payout and amount.
+        """
+        return self.payout - self.amount
 
     @staticmethod
     def create(**kwargs):
@@ -154,7 +169,8 @@ class Bet(db.Model):
 
                 # Increment counter & create bet
                 session.bet_count += 1
-
+                kwargs["game_id"] = session.game_id
+                kwargs["user_id"] = session.user_id
                 bet = Bet(**kwargs)
                 db.session.add(bet)
 
@@ -167,3 +183,13 @@ class Bet(db.Model):
         except Exception:
             db.session.rollback()
             raise
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "amount": self.amount,
+            "placed_at": str(self.placed_at),
+            "payout": self.payout,
+            "choice": self.choice,
+            "bet_details": self.bet_details,
+        }
