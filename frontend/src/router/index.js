@@ -8,6 +8,7 @@ import Register from '../views/Register.vue';
 import AdminDash from '../views/admin/AdminDash.vue';
 import PlayerDash from '../views/player/PlayerDash.vue';
 import GameWrapper from '../views/GameWrapper.vue';
+import SimpleGame from '../games/SimpleGamePage.vue';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -56,6 +57,33 @@ const router = createRouter({
                         } catch (error) {
                             console.error('Error loading game:', error);
                             // Keep the default GameNotFound component
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            path: '/game/:gameName/docs',
+            component: GameWrapper,
+            meta: { requiresUser: true },
+            children: [
+                {
+                    path: '',
+                    component: () => import('@/games/GameNotFound.vue'),
+                    beforeEnter: async (to) => {
+                        const gameName = to.params.gameName;
+                        try {
+                            const gameData = await getGameinfo(gameName);
+                            if (!gameData.is_active) {
+                                return { name: 'GameNotActive', params: { gameName } };
+                            }
+                            // Load the simple game page
+                            const module = await import('@/games/SimpleGamePage.vue');
+                            to.matched[0].components.default = module.default;
+                            // Pass game data to the component
+                            to.meta.gameData = gameData;
+                        } catch (error) {
+                            console.error('Error loading game:', error);
                         }
                     }
                 }
