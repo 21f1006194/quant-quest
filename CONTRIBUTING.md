@@ -123,5 +123,55 @@ Thank you for your interest in contributing! This guide focuses on getting your 
    npm run dev
    ```
 
+# How to Add a New Game
+
+## Backend
+
+1. **Create a Game Folder**
+   - Add a new folder with the game's name to `backend/app/routes/games`.
+   - Follow the file structure of `backend/app/routes/games/game_template`:
+     ```
+     ├── api.py
+     ├── description.md
+     ├── engine.py
+     ├── __init__.py
+     ├── metadata.json
+     ├── template.py
+     └── utils.py
+     ```
+
+2. **File Descriptions**
+   - `api.py`: Contains the API endpoints for the game. Use `POST` to start a new session and `PUT` for placing multiple bets in the same session. For stateless games, use `POST` only.
+   - `description.md`: Includes the game's description, rules, and API documentation.
+   - `engine.py`: Contains the game logic.
+   - `template.py`: Provides template code for players to start playing.
+   - `utils.py`: Contains utility functions for the game.
+
+3. **Register the Game**
+   - Ensure the game and its endpoints are dynamically registered in `backend/app/routes/game_router.py`. (No changes needed in this file)
+
+4. **Update Database Models**
+   - Update the database models in `/home/bruce/Desktop/quant-quest/backend/app/models/gameplay.py` as needed. (No changes needed in this file)
+
+5. **Testing**
+   - Launch the app (both frontend and backend) and test the game via the frontend.
+   - Use the dynamic rendering route `/game/<game_name>/docs` to verify the description and template code.
+
+## Frontend
+
+1. **Verify Documentation Route**
+   - Ensure `/game/<game_name>/docs` is functioning as expected.
+
+2. **Create a Game Folder**
+   - Add a new folder with the game's name in `/frontend/src/games`.
+
+3. **Game Page**
+   - Create a `GamePage.vue` file in the new folder. This will be rendered as the game page for players at `/game/<game_name>`.
+
+4. **Assets**
+   - Place any images or assets in the `assets` folder within the game folder.
+
+
+
     
     
