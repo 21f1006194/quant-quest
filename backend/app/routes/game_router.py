@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, request, jsonify
 from flask_restful import Api
 import importlib
 import os
@@ -6,6 +6,7 @@ import json
 from .base_game import BaseGameAPI
 from app.models.gameplay import Game
 from app import db
+
 
 game_bp = Blueprint("game", __name__)
 play_bp = Blueprint("play", __name__)
@@ -192,3 +193,10 @@ def register_all_games(app):
                 print(f"Successfully registered game: {game_name}")
             else:
                 print(f"Failed to register game: {game_name}")
+@game_bp.route("/games/count", methods=["GET"])
+def games_count():
+    try:
+        count = Game.query.count()
+        return jsonify({"count": count}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

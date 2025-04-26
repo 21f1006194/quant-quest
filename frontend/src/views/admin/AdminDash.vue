@@ -23,22 +23,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import api from '@/services/api'
 
 const totalUsers = ref(0)
 const totalGames = ref(0)
 const recentActivities = ref([])
 
-const fetchDashboardData = async () => {
-    try {
-        const response = await api.get('/admin');
-        totalGames.value = response.data.totalGames;
-    } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-    }
-};
+onMounted(async () => {
+  try {
+    const gamesResponse = await api.get('/games/count') 
+    totalGames.value = gamesResponse.data.count  
 
-onMounted(fetchDashboardData)
+    recentActivities.value = activitiesResponse.data.activities
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
+})
 </script>
 
 <style scoped>
@@ -52,6 +53,7 @@ onMounted(fetchDashboardData)
 }
 
 .card {
+  background-color: white;
   border: 1px solid #ccc;
   padding: 20px;
   border-radius: 5px;
