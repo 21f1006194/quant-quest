@@ -11,12 +11,6 @@
         <h2>Total Games</h2>
         <p>{{ totalGames }}</p>
       </div>
-      <div class="card">
-        <h2>Recent Activities</h2>
-        <ul>
-          <li v-for="activity in recentActivities" :key="activity.id">{{ activity.description }}</li>
-        </ul>
-      </div>
     </div>
   </div>
 </template>
@@ -34,8 +28,6 @@ onMounted(async () => {
   try {
     const gamesResponse = await api.get('/games/count') 
     totalGames.value = gamesResponse.data.count  
-
-    recentActivities.value = activitiesResponse.data.activities
   } catch (error) {
     console.error('Error fetching data:', error)
   }
