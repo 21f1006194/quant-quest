@@ -30,8 +30,13 @@ const totalGames = ref(0)
 const recentActivities = ref([])
 
 const fetchDashboardData = async () => {
-    console.log("Fetching dashboard data")
-}
+    try {
+        const response = await api.get('/admin');
+        totalGames.value = response.data.totalGames;
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+    }
+};
 
 onMounted(fetchDashboardData)
 </script>
