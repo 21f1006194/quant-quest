@@ -194,20 +194,4 @@ def register_all_games(app):
             else:
                 print(f"Failed to register game: {game_name}")
 
-# Get count of all games
-@game_bp.route("/games/count", methods=["GET"])
-def games_count():
-    try:
-        count = Game.query.count()
-        return jsonify({"count": count}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
-#Get the list of all games to "game/list" 
-@game_bp.route("/games/list", methods=["GET"])
-def list_games():
-    try:
-        games = Game.query.all()
-        return jsonify({"games": [g.to_dict() for g in games]}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
