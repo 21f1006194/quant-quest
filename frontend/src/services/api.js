@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from '@/store/authStore';
 
 const api = axios.create({
     baseURL: "http://localhost:5000",
@@ -6,9 +7,9 @@ const api = axios.create({
 
 // add token to headers
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    const authStore = useAuthStore();
+    if (authStore.token) {
+        config.headers.Authorization = `Bearer ${authStore.token}`;
     }
     return config;
 }, (error) => {
@@ -19,8 +20,19 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem("token");
+        // Handle authentication errors (401)
+        // 401: Unauthorized - Authentication is required or has failed
+        // 403: Forbidden - User is authenticated but doesn't have permission
+        // 422: Unprocessable Entity - Validation errors or semantic issues
+        alert(`Error: ${error.response?.status} ${error.response?.data?.error}`);
+        const errorMessage = error.response?.data?.error.toLowerCase();
+        if (error.response?.status === 401
+            || errorMessage.includes('signature') && errorMessage.includes('failed')
+            || errorMessage.includes('token') && errorMessage.includes('expired')
+            || errorMessage.includes('token') && errorMessage.includes('invalid')
+        ) {
+            const authStore = useAuthStore();
+            authStore.logout();
             window.location.href = "/login";
         }
         return Promise.reject(error);

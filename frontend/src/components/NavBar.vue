@@ -1,67 +1,69 @@
 <template>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">QuantQuest</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- Anonymous User Navigation -->
-            <ul v-if="!authStore.isAuthenticated" class="navbar-nav">
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/">Home</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/about">About</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/login">Login</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/register">Register</router-link>
-                </li>
-            </ul>
+      <router-link class="navbar-brand" to="/">
+        <span class="brand-text">QuantQuest</span>
+      </router-link>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Anonymous User Navigation -->
+        <ul v-if="!authStore.isAuthenticated" class="navbar-nav">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/">Home</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/about">About</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/login">Login</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/register">Register</router-link>
+          </li>
+        </ul>
 
-            <!-- Admin Navigation -->
-            <ul v-else-if="authStore.isAdmin" class="navbar-nav">
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/admin">Home</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/admin/games">Games</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/admin/players">Players</router-link>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
-                </li>
-                <li class="nav-item ms-auto">
-                    <span class="nav-link">Welcome, {{ authStore.user?.username }}</span>
-                </li>
-            </ul>
+        <!-- Admin Navigation -->
+        <ul v-else-if="authStore.isAdmin" class="navbar-nav">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin">Home</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/games">Games</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/players">Players</router-link>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
+          </li>
+          <li class="nav-item ms-auto">
+            <span class="nav-link username">Welcome, {{ authStore.user?.username }}</span>
+          </li>
+        </ul>
 
-            <!-- Regular User Navigation -->
-            <ul v-else class="navbar-nav">
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/">Home</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/games">Games</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/profile">Profile</router-link>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
-                </li>
-                <li class="nav-item ms-auto">
-                    <span class="nav-link">Welcome, {{ authStore.user?.username }}</span>
-                </li>
-            </ul>
-        </div>
+        <!-- Regular User Navigation -->
+        <ul v-else class="navbar-nav">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/">Home</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/games">Games</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/profile">Profile</router-link>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
+          </li>
+          <li class="nav-item ms-auto">
+            <span class="nav-link username">Welcome, {{ authStore.user?.username }}</span>
+          </li>
+        </ul>
+      </div>
     </div>
-</nav>
+  </nav>
 </template>
 
 <script setup>
@@ -77,20 +79,77 @@ const logout = () => {
     router.push('/login');
 };
 watchEffect(() => {
-  authStore.checkAuth(); // Ensure auth state is up-to-date
+  authStore.checkAuth();
 });
 </script>
 
 <style scoped>
+.navbar {
+  background-color: var(--card-dark);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color) !important;
+  text-decoration: none;
+}
+
+.brand-text {
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+}
+
 .navbar-nav {
-    width: 100%;
+  width: 100%;
+  gap: var(--spacing-sm);
 }
 
 .nav-link {
-    cursor: pointer;
+  color: var(--text-light) !important;
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-normal);
 }
 
-.ms-auto {
-    margin-left: auto !important;
+.nav-link:hover {
+  color: var(--primary-color) !important;
+  background-color: rgba(100, 255, 218, 0.1);
+}
+
+.nav-link.router-link-active {
+  color: var(--primary-color) !important;
+  background-color: rgba(100, 255, 218, 0.1);
+}
+
+.username {
+  color: var(--secondary-color) !important;
+  font-style: italic;
+}
+
+.navbar-toggler {
+  border-color: var(--primary-color);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(100, 255, 218, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .navbar-nav {
+    padding: var(--spacing-sm) 0;
+  }
+  
+  .nav-link {
+    padding: var(--spacing-xs) !important;
+  }
 }
 </style>
