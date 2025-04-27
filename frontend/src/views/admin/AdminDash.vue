@@ -9,6 +9,14 @@
         <p>{{ totalUsers }}</p>
       </div>
       <div class="card">
+        <h2>Active Games</h2>
+        <p>{{ activeGames }}</p>
+      </div>
+      <div class="card">
+        <h2>Inactive Games</h2>
+        <p>{{ inactiveGames }}</p>
+      </div>
+        <div class="card">
         <h2>Total Games</h2>
         <p>{{ totalGames }}</p>
       </div>
@@ -55,15 +63,25 @@ import api from '@/services/api'
 
 const totalUsers = ref(0)
 const totalGames = ref(0)
+const activeGames = ref(0)
+const inactiveGames = ref(0)
 const games = ref([])
 
 onMounted(async () => {
   try {
-    const gamesCountResponse = await api.get('/admin/games/count') 
-    totalGames.value = gamesCountResponse.data.count  
+    const gamesListResponse = await api.get('/admin/games') 
 
-    const gamesListResponse = await api.get('/admin/games')
-    games.value = gamesListResponse.data.games
+    console.log('gamesListResponse:', gamesListResponse.data)
+
+    if (gamesListResponse.data && Array.isArray(gamesListResponse.data.games)) {
+      games.value = gamesListResponse.data.games
+
+      activeGames.value = games.value.filter(g => g.is_active).length
+      inactiveGames.value = games.value.filter(g => !g.is_active).length
+      totalGames.value = activeGames.value + inactiveGames.value
+    } else {
+      console.error('Invalid games list response:', gamesListResponse.data)
+    }
   } catch (error) {
     console.error('Error fetching data:', error)
   }

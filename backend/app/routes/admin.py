@@ -26,17 +26,7 @@ class GameListAPI(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
         
-"""Total number of games"""
-class GameCountResource(Resource):
-    @admin_required
-    def get(self):
-        try:
-            game_count = Game.query.count()
-            return {"game_count": game_count}, 200
-        except Exception as e:
-            return {"error": str(e)}, 500
+
 
 api.add_resource(AdminAPI, "/admin")
 api.add_resource(GameListAPI, "/admin/games")
-api.add_resource(GameCountResource, "/admin/games/count")
-# Register the admin blueprint
