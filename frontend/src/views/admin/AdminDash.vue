@@ -21,7 +21,8 @@
           <tr>
             <th>Game Name</th>
             <th>Active</th>
-            <th>Max Sessions/User</th>
+            <th>Max sessions per user</th>
+            <th>Max bets per session</th>
             <th>Save</th>
           </tr>
         </thead>
@@ -33,6 +34,9 @@
             </td>
             <td>
               <input type="number" v-model.number="game.max_sessions_per_user" min="1" />
+            </td>
+            <td>
+              <input type="number" v-model.number="game.max_bets_per_session" min="1" />
             </td>
             <td>
               <button @click="saveGameSettings(game)">Save</button>
@@ -55,10 +59,10 @@ const games = ref([])
 
 onMounted(async () => {
   try {
-    const gamesCountResponse = await api.get('/games/count') 
+    const gamesCountResponse = await api.get('/admin/games/count') 
     totalGames.value = gamesCountResponse.data.count  
 
-    const gamesListResponse = await api.get('/games/list')
+    const gamesListResponse = await api.get('/admin/games')
     games.value = gamesListResponse.data.games
   } catch (error) {
     console.error('Error fetching data:', error)
@@ -70,7 +74,8 @@ const saveGameSettings = async (game) => {
     const encodedName = encodeURIComponent(game.name); 
     await api.post(`/game/${encodedName}/control`, {
       is_active: game.is_active,
-      max_sessions_per_user: game.max_sessions_per_user
+      max_sessions_per_user: game.max_sessions_per_user,
+      max_bets_per_session: game.max_bets_per_session
     })
     alert(`Settings saved for ${game.name}!`);
   } catch (error) {
