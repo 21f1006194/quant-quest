@@ -53,9 +53,34 @@ def session_rate_limit(game_name):
             game = get_game(game_name)
             user_id = get_api_user().id
             key = f"session_count:{game.id}:{user_id}"
-            if redis_client.incr(key) > game.max_sessions_per_user:
+
+            # Check current count first
+            current_count = redis_client.get(key)
+            if current_count and int(current_count) >= game.max_sessions_per_user:
                 return {"error": "Rate limit exceeded"}, 429
-            return f(*args, **kwargs)
+
+            # Try to increment
+            if redis_client.incr(key) > game.max_sessions_per_user:
+                # Decrement if we exceeded the limit
+                redis_client.decr(key)
+                return {"error": "Rate limit exceeded"}, 429
+
+            try:
+                # Execute the function
+                response = f(*args, **kwargs)
+
+                # Check if response is successful
+                if isinstance(response, tuple):
+                    status_code = response[1]
+                    if status_code not in [200, 201]:
+                        # Decrement count if not successful
+                        redis_client.decr(key)
+                return response
+
+            except Exception as e:
+                # Decrement count on any error
+                redis_client.decr(key)
+                raise e
 
         return decorated
 
