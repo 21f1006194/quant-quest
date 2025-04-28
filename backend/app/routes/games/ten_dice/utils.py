@@ -1,4 +1,5 @@
 from app.models.gameplay import GameSession, Bet
+from app.services.bet_service import BetService
 from app import db
 
 
@@ -19,6 +20,7 @@ def get_bets_for_user(user_id, game):
 def create_game_session_and_bet(user_id, game, bet_data, result):
     """
     Create a game session and bet for the user.
+    For ten_dice game, we create a new session for each bet.
 
     Args:
         user_id (int): The ID of the user
@@ -29,26 +31,24 @@ def create_game_session_and_bet(user_id, game, bet_data, result):
     Returns:
         tuple: (GameSession, Bet) objects created
     """
-    # Create a new session
-    session = GameSession(
-        user_id=user_id,
-        game_id=game.id,
-    )
-    # commit to get the session id
-    db.session.add(session)
-    db.session.flush()
-
     try:
-        # Create the bet
-        bet = Bet.create(
-            session_id=session.id,
-            amount=bet_data["bet_amount"],
-            choice=str(bet_data["choice"]),
-            payout=result["payout"],
-            bet_details=result,
+        # Create a new session for each bet (ten_dice specific)
+        session = GameSession(
+            user_id=user_id,
+            game_id=game.id,
         )
+        db.session.add(session)
+        db.session.flush()
+
+        # Add user_id to bet_data for wallet validation
+        bet_data["user_id"] = user_id
+        # Create bet using BetService
+        bet = BetService.create_bet(session.id, bet_data, result)
 
         return session, bet
     except Exception as e:
         db.session.rollback()
+        import traceback
+
+        traceback.print_exc()
         raise ValueError(f"Failed to create bet: {str(e)}")
