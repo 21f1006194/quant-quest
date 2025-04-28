@@ -4,7 +4,8 @@ from app import db
 import secrets
 import re
 
-EMAIL_PATTERN = r'^\d{2}f\d{7}@ds\.study\.iitm\.ac\.in$'
+EMAIL_PATTERN = r"^\d{2}f\d{7}@ds\.study\.iitm\.ac\.in$"
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -20,10 +21,20 @@ class User(db.Model):
     api_token_created_at = db.Column(db.DateTime)
 
     # Relationships
-    profile = db.relationship("UserProfile", backref=db.backref("user", uselist=False), cascade="all, delete-orphan")
-    verification_tokens = db.relationship("VerificationToken", backref="user", cascade="all, delete-orphan")
-    game_sessions = db.relationship("GameSession", backref="user", cascade="all, delete-orphan")
-    wallet = db.relationship("Wallet", backref="user", uselist=False, cascade="all, delete-orphan")
+    profile = db.relationship(
+        "UserProfile",
+        backref=db.backref("user", uselist=False),
+        cascade="all, delete-orphan",
+    )
+    verification_tokens = db.relationship(
+        "VerificationToken", backref="user", cascade="all, delete-orphan"
+    )
+    game_sessions = db.relationship(
+        "GameSession", backref="user", cascade="all, delete-orphan"
+    )
+    wallet = db.relationship(
+        "Wallet", backref="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
