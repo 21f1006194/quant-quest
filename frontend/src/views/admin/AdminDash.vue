@@ -16,7 +16,7 @@
         <h2>Inactive Games</h2>
         <p>{{ inactiveGames }}</p>
       </div>
-        <div class="card">
+      <div class="card">
         <h2>Total Games</h2>
         <p>{{ totalGames }}</p>
       </div>
@@ -31,6 +31,9 @@
             <th>Active</th>
             <th>Max sessions per user</th>
             <th>Max bets per session</th>
+            <th>Max bet amount</th>
+            <th>Min bet amount</th>
+            <th>Payout</th>
             <th>Save</th>
           </tr>
         </thead>
@@ -46,6 +49,18 @@
             <td>
               <input type="number" v-model.number="game.max_bets_per_session" min="1" />
             </td>
+            <td>
+              <input type="number" v-model.number="game.config_data.max_bet_amount" min="1" />
+            </td>
+            <td>
+              <input type="number" v-model.number="game.config_data.min_bet_amount" min="1" />
+            </td>
+            <td>
+              <input type="number" v-model.number="game.config_data.payout" min="1" />
+            </td>
+
+
+
             <td>
               <button @click="saveGameSettings(game)">Save</button>
             </td>
@@ -69,7 +84,7 @@ const games = ref([])
 
 onMounted(async () => {
   try {
-    const gamesListResponse = await api.get('/admin/games') 
+    const gamesListResponse = await api.get('/admin/games')
 
     console.log('gamesListResponse:', gamesListResponse.data)
 
@@ -89,11 +104,17 @@ onMounted(async () => {
 
 const saveGameSettings = async (game) => {
   try {
-    const encodedName = encodeURIComponent(game.name); 
+    const encodedName = encodeURIComponent(game.name);
     await api.post(`/game/${encodedName}/control`, {
       is_active: game.is_active,
       max_sessions_per_user: game.max_sessions_per_user,
-      max_bets_per_session: game.max_bets_per_session
+      max_bets_per_session: game.max_bets_per_session,
+      config: {
+        max_bet_amount: game.config_data.max_bet_amount,
+        min_bet_amount: game.config_data.min_bet_amount,
+        payout: game.config_data.payout
+      }
+
     })
     alert(`Settings saved for ${game.name}!`);
   } catch (error) {
