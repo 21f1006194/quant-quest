@@ -6,11 +6,9 @@ from app.models import User, Bet, GameSession, Game, Wallet
 from app import db
 from sqlalchemy.orm import joinedload
 from datetime import datetime
-import pytz
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
-IST = pytz.timezone("Asia/Kolkata") # IST in Profile but UTC in DB
 
 
 class PlayerProfile(Resource):
@@ -23,7 +21,8 @@ class PlayerProfile(Resource):
             return {"error": "User not found"}, 404
 
         return {"profile": user.to_dict()}, 200
-    
+
+
 class WalletInfo(Resource):
     @jwt_required()
     def get(self):
@@ -35,11 +34,15 @@ class WalletInfo(Resource):
 
         wallet = user.wallet
         wallet_data = {
-            "balance": wallet.balance if wallet else 0.0,
-            "currency": wallet.currency if wallet else "INR",
-            "last_updated": wallet.last_updated.astimezone(IST).isoformat() if wallet and wallet.last_updated else None,
+            "balance": wallet.current_balance if wallet else 0.0,
+            "last_updated": (
+                wallet.last_updated.isoformat()
+                if wallet and wallet.last_updated
+                else None
+            ),
         }
         return {"wallet": wallet_data}, 200
+
 
 class RecentBets(Resource):
     @jwt_required()
@@ -47,10 +50,7 @@ class RecentBets(Resource):
         user_id = int(get_jwt_identity())
         try:
             recent_bets = (
-                db.session.query(Bet)
-                .join(GameSession, Bet.session_id == GameSession.id)
-                .join(Game, GameSession.game_id == Game.id)
-                .filter(GameSession.user_id == user_id)
+                Bet.query.filter_by(user_id=user_id)
                 .order_by(Bet.placed_at.desc())
                 .limit(20)
                 .all()
@@ -58,23 +58,7 @@ class RecentBets(Resource):
         except Exception as e:
             return {"error": f"Error fetching bets: {str(e)}"}, 500
 
-        bets = []
-        for bet in recent_bets:
-            game = bet.session.game
-            bets.append({
-                "game_id": game.id,
-                "game_name": game.name,
-                "amount": bet.amount,
-                "choice": bet.choice,
-                "outcome": bet.outcome,
-                "payout": bet.payout,
-                "is_successful": bet.is_successful,
-                "placed_at": bet.placed_at.astimezone(IST).isoformat() if bet.placed_at else None,
-                "bet_details": bet.bet_details,
-            })
-
-        return {"recent_bets": bets}, 200
-
+        return {"recent_bets": [bet.to_dict() for bet in recent_bets]}, 200
 
 
 class APIToken(Resource):
