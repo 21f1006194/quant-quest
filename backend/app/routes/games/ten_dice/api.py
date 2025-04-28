@@ -24,7 +24,7 @@ class GamePlayAPI(Resource):
         try:
             user = get_api_user()
             play_data = request.get_json()
-            validate_bet_data(play_data)
+            validate_bet_data(play_data, self.engine.config_data)
             print(f"User ID: {user.id}")
 
             # Get result from game engine
@@ -33,13 +33,16 @@ class GamePlayAPI(Resource):
             )
 
             # Create session and bet
-            session, bet = create_game_session_and_bet(
+            session, bet, wallet = create_game_session_and_bet(
                 user_id=user.id,
                 game=self.engine.game,
                 bet_data=play_data,
                 result=result,
             )
 
-            return {"result": result}
+            return {
+                "result": result,
+                "current_balance": wallet.current_balance,
+            }
         except Exception as e:
             return {"error": str(e)}, 400

@@ -2,6 +2,27 @@ from app import db
 from app.models.gameplay import GameSession, Bet
 from app.services.wallet_service import WalletService
 from sqlalchemy.exc import IntegrityError
+from dataclasses import dataclass
+from typing import Optional, Any
+
+
+@dataclass
+class BetData:
+    """Standardized bet data structure for all games"""
+
+    amount: float
+    choice: str
+    payout: float
+    bet_details: Optional[dict[str, Any]] = None
+
+    def validate(self):
+        """Validate bet data"""
+        if self.amount <= 0:
+            raise ValueError("Bet amount must be positive")
+        if not self.choice:
+            raise ValueError("Bet choice is required")
+        if self.payout < 0:
+            raise ValueError("Payout cannot be negative")
 
 
 class BetService:
@@ -18,36 +39,28 @@ class BetService:
         return True
 
     @staticmethod
-    def create_bet(session_id, bet_data, result):
+    def create_bet(session_id: int, bet_data: BetData) -> Bet:
         """
         Create a bet with proper transaction handling.
-        This is an atomic operation that:
-        1. Validates wallet balance
-        2. Creates bet
-        3. Updates wallet balance
-        4. Updates session bet count
 
         Args:
-            session_id (int): The ID of the game session
-            bet_data (dict): The bet data containing bet_amount and choice
-            result (dict): The result of the bet from the game engine
+            session_id: The ID of the game session
+            bet_data: Standardized bet data
 
         Returns:
             Bet: The created bet instance
-
-        Raises:
-            ValueError: If session not found or max bets reached
-            RuntimeError: If database error occurs
         """
         try:
-            # Validate bet amount
-            BetService.validate_bet_amount(bet_data["user_id"], bet_data["bet_amount"])
+            # Validate bet data
+            bet_data.validate()
 
             with db.session.begin_nested():
-                # Lock the session row for safe concurrent updates
                 session = GameSession.query.with_for_update().get(session_id)
                 if not session:
                     raise ValueError(f"Session {session_id} not found")
+
+                # Validate wallet balance
+                BetService.validate_bet_amount(session.user_id, bet_data.amount)
 
                 if session.bet_count >= session.max_bets_per_session:
                     raise ValueError(f"Max bets reached for session {session_id}")
@@ -57,31 +70,23 @@ class BetService:
                     session_id=session_id,
                     game_id=session.game_id,
                     user_id=session.user_id,
-                    amount=bet_data["bet_amount"],
-                    choice=str(bet_data["choice"]),
-                    payout=result["payout"],
-                    bet_details=result,
+                    amount=bet_data.amount,
+                    choice=bet_data.choice,
+                    payout=bet_data.payout,
+                    bet_details=bet_data.bet_details,
                 )
 
-                # Update session bet count
+                # Update session and wallet
                 session.bet_count += 1
-
-                # Update wallet balance
                 wallet = WalletService.get_wallet(session.user_id)
-                wallet.current_balance -= bet_data["bet_amount"]  # Deduct bet amount
-                wallet.current_balance += result["payout"]  # Add payout
+                wallet.current_balance -= bet_data.amount
+                wallet.current_balance += bet_data.payout
 
-                # Add all to session
-                db.session.add(bet)
-                db.session.add(session)
-                db.session.add(wallet)
+                db.session.add_all([bet, session, wallet])
 
             db.session.commit()
-            return bet
+            return bet, wallet
 
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError("Database error occurred") from e
         except Exception as e:
             db.session.rollback()
             raise RuntimeError(f"Error creating bet: {str(e)}") from e
