@@ -139,51 +139,6 @@ class Bet(db.Model):
         """
         return self.payout - self.amount
 
-    @staticmethod
-    def create(**kwargs):
-        """
-        Create a new bet with proper transaction handling and row locking.
-        This method ensures thread-safe bet creation and counter updates.
-        Args:
-            **kwargs: Bet attributes including
-        Returns:
-            The created Bet instance
-        Raises:
-            ValueError: If session not found or max bets reached
-            RuntimeError: If database error occurs
-        """
-        session_id = kwargs.get("session_id")
-        if not session_id:
-            raise ValueError("session_id is required")
-
-        try:
-            with db.session.begin_nested():
-                # Lock the session row for safe concurrent updates
-                session = GameSession.query.with_for_update().get(session_id)
-
-                if not session:
-                    raise ValueError(f"Session {session_id} not found")
-
-                if session.bet_count >= session.max_bets_per_session:
-                    raise ValueError(f"Max bets reached for session {session_id}")
-
-                # Increment counter & create bet
-                session.bet_count += 1
-                kwargs["game_id"] = session.game_id
-                kwargs["user_id"] = session.user_id
-                bet = Bet(**kwargs)
-                db.session.add(bet)
-
-            db.session.commit()
-            return bet
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise RuntimeError("Database error occurred") from e
-        except Exception:
-            db.session.rollback()
-            raise
-
     def to_dict(self):
         return {
             "id": self.id,
