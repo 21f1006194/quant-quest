@@ -57,6 +57,8 @@ def create_or_update_game(game_name, metadata, description):
                 max_sessions_per_user=metadata.get("default_max_sessions_per_user"),
                 max_bets_per_session=metadata.get("default_max_bets_per_session"),
                 is_active=metadata.get("default_is_active", True),
+                difficulty=metadata.get("default_difficulty", "easy"),
+                tags=metadata.get("default_tags", ""),
                 config_data=metadata.get("default_config", {}),
             )
             db.session.add(game)
