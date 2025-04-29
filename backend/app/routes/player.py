@@ -2,24 +2,63 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource
 from flask import Blueprint
 from flask_restful import Api
-from app.models import User
+from app.models import User, Bet, GameSession, Game, Wallet
 from app import db
+from sqlalchemy.orm import joinedload
+from datetime import datetime
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
 
 
-class Profile(Resource):
+class PlayerProfile(Resource):
     @jwt_required()
     def get(self):
-        """Get player profile"""
-        user_id = int(get_jwt_identity())  # Convert string ID back to integer
-        user = User.query.get(user_id)
+        user_id = int(get_jwt_identity())
+        user = User.query.options(joinedload(User.profile)).get(user_id)
 
         if not user:
             return {"error": "User not found"}, 404
 
-        return user.to_dict(), 200
+        return {"profile": user.to_dict()}, 200
+
+
+class WalletInfo(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = int(get_jwt_identity())
+        user = User.query.options(joinedload(User.wallet)).get(user_id)
+
+        if not user:
+            return {"error": "User not found"}, 404
+
+        wallet = user.wallet
+        wallet_data = {
+            "balance": wallet.current_balance if wallet else 0.0,
+            "last_updated": (
+                wallet.last_updated.isoformat()
+                if wallet and wallet.last_updated
+                else None
+            ),
+        }
+        return {"wallet": wallet_data}, 200
+
+
+class RecentBets(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = int(get_jwt_identity())
+        try:
+            recent_bets = (
+                Bet.query.filter_by(user_id=user_id)
+                .order_by(Bet.placed_at.desc())
+                .limit(20)
+                .all()
+            )
+        except Exception as e:
+            return {"error": f"Error fetching bets: {str(e)}"}, 500
+
+        return {"recent_bets": [bet.to_dict() for bet in recent_bets]}, 200
 
 
 class APIToken(Resource):
@@ -74,4 +113,6 @@ class APIToken(Resource):
 
 
 api.add_resource(APIToken, "/api-token")
-api.add_resource(Profile, "/profile")
+api.add_resource(PlayerProfile, "/profile")
+api.add_resource(WalletInfo, "/wallet")
+api.add_resource(RecentBets, "/recent-bets")
