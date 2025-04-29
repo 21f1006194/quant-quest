@@ -9,7 +9,7 @@ import AdminDash from '../views/admin/AdminDash.vue';
 import PlayerDash from '../views/player/PlayerDash.vue';
 import GameWrapper from '../views/GameWrapper.vue';
 import SimpleGame from '../games/SimpleGamePage.vue';
-
+import PlayerGamesView from '../views/player/PlayerGamesView.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -23,6 +23,12 @@ const router = createRouter({
             path: "/player",
             name: 'Player',
             component: PlayerDash,
+            meta: { requiresUser: true }
+        },
+        {
+            path: "/games",
+            name: 'PlayerGames',
+            component: PlayerGamesView,
             meta: { requiresUser: true }
         },
         { path: "/", component: HomeView },
