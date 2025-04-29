@@ -44,7 +44,7 @@
               <input type="checkbox" v-model="game.is_active" />
             </td>
             <td>
-              <input type="number" v-model.number="game.max_sessions_per_user" min="1" />
+              <input type="number" v-model.number="game.max_sessions_per_user" min="1" class="wide-input" />
             </td>
             <td>
               <input type="number" v-model.number="game.max_bets_per_session" min="1" />
@@ -174,5 +174,20 @@ button:hover {
 
 input[type="number"] {
   width: 60px;
+}
+
+/* Make this more specific to override the general input[type="number"] rule */
+input[type="number"].wide-input {
+    width: 150px;
+    padding: 8px;
+    border: 1px solid #484848;
+    border-radius: 4px;
+    background-color: #343434;
+    color: white;
+}
+
+.wide-input:focus {
+    outline: none;
+    border-color: #00ff00;
 }
 </style>
