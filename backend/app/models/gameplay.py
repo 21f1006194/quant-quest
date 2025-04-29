@@ -14,6 +14,8 @@ class Game(db.Model):
     type = db.Column(
         db.String(50), nullable=True
     )  # e.g., 'quiz', 'puzzle', 'prediction'
+    difficulty = db.Column(db.String(50), nullable=True)
+    tags = db.Column(db.String(255), nullable=True)
     max_sessions_per_user = db.Column(db.Integer, nullable=False)
     max_bets_per_session = db.Column(db.Integer, nullable=False)
     config_data = db.Column(JSON, nullable=True)  # game configuration, rules, etc.
@@ -36,6 +38,8 @@ class Game(db.Model):
             "max_bets_per_session": self.max_bets_per_session,
             "config_data": self.config_data,
             "is_active": self.is_active,
+            "difficulty": self.difficulty,
+            "tags": self.tags,
         }
 
 
@@ -53,7 +57,7 @@ class GameSession(db.Model):
     session_data = db.Column(JSON, nullable=True)  # gameplay-specific data
     bet_count = db.Column(db.Integer, default=0, nullable=False)  # Track number of bets
     max_bets_per_session = db.Column(db.Integer, nullable=False)  # Copied from game
-
+    net_flow = db.Column(db.Float, default=0, nullable=False)
     bets = db.relationship(
         "Bet", back_populates="session", cascade="all, delete", passive_deletes=True
     )
@@ -66,13 +70,6 @@ class GameSession(db.Model):
             "bet_count <= max_bets_per_session", name="check_bet_count_limit"
         ),
     )
-
-    @property
-    def net_flow(self):
-        """Calculate the net flow (profit/loss) for this session.
-        Returns the sum of all bet net flows.
-        """
-        return sum(bet.net_flow for bet in self.bets)
 
     def __init__(self, **kwargs):
         user_id = kwargs.get("user_id")
