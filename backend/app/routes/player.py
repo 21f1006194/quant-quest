@@ -6,6 +6,7 @@ from app.models import User, Bet, GameSession, Game, Wallet
 from app import db
 from sqlalchemy.orm import joinedload
 from datetime import datetime
+from app.services.game_service import GameService
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
@@ -112,7 +113,27 @@ class APIToken(Resource):
         return {"message": "API token revoked successfully"}, 200
 
 
+class PlayerGames(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = int(get_jwt_identity())
+        print(user_id)
+        games = GameService.get_active_games()
+        played_game_counts, played_game_pnl = GameService.get_games_played_data_by_user(
+            user_id
+        )
+        resp = []
+        for game in games:
+            resp.append(game.to_dict())
+            resp[-1]["plays_remaining"] = (
+                game.max_sessions_per_user - played_game_counts.get(game.id, 0)
+            )
+            resp[-1]["pnl"] = played_game_pnl.get(game.id, 0)
+        return {"games": resp}, 200
+
+
 api.add_resource(APIToken, "/api-token")
 api.add_resource(PlayerProfile, "/profile")
 api.add_resource(WalletInfo, "/wallet")
 api.add_resource(RecentBets, "/recent-bets")
+api.add_resource(PlayerGames, "/games")
