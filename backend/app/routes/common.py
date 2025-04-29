@@ -5,11 +5,10 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
 )
-from app.models import User
 from flask_restful import Resource, Api
 from app.utils import is_password_strong
 from datetime import timedelta
-from app import db
+from app.services.user_service import UserService
 
 common_bp = Blueprint("common", __name__)
 api = Api(common_bp)
@@ -34,39 +33,27 @@ class RegisterAPI(Resource):
         if not is_password_strong(data["password"]):
             return {"error": "Password is not strong enough"}, 400
 
-        # Check if email already exists
-        if User.query.filter_by(email=data["email"]).first():
-            return {"error": "Email already registered"}, 400
-
-        # Check if username already exists
-        if User.query.filter_by(username=data["username"]).first():
-            return {"error": "Username already taken"}, 400
-
-        # Create new user
-        user = User(
-            email=data["email"],
-            username=data["username"],
-            full_name=data["full_name"],
-            is_admin=False,
-        )
-        user.set_password(data["password"])
-        user.generate_api_token()
-
         try:
-            db.session.add(user)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
+            # Create user using service
+            user = UserService.create_user(
+                email=data["email"],
+                username=data["username"],
+                password=data["password"],
+                full_name=data["full_name"],
+            )
+
+            return {
+                "message": "User registered successfully",
+                "user": user.to_dict(),
+            }, 201
+
+        except ValueError as e:
             import traceback
 
             traceback.print_exc()
+            return {"error": str(e)}, 400
+        except Exception as e:
             return {"error": "Error creating user"}, 500
-
-        # return user details
-        return {
-            "message": "User registered successfully",
-            "user": user.to_dict(),
-        }, 201
 
 
 class LoginAPI(Resource):
@@ -78,7 +65,7 @@ class LoginAPI(Resource):
         if not username or not password:
             return {"error": "Username and password are required"}, 400
 
-        user = User.query.filter_by(username=username).first()
+        user = UserService.get_user_by_username(username)
         if not user or not user.check_password(password):
             return {"error": "Invalid username or password"}, 401
 
