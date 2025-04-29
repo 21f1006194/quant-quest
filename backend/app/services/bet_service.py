@@ -78,6 +78,7 @@ class BetService:
 
                 # Update session and wallet
                 session.bet_count += 1
+                session.net_flow += bet_data.payout - bet_data.amount
                 wallet = WalletService.get_wallet(session.user_id)
                 wallet.current_balance -= bet_data.amount
                 wallet.current_balance += bet_data.payout
