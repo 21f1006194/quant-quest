@@ -39,10 +39,6 @@
             <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
           </li>
           <li class="nav-item ms-auto d-flex align-items-center">
-            <div class="wallet-balance">
-              <i class="bi bi-wallet2"></i>
-              <span>${{ walletStore.balance.toFixed(2) }}</span>
-            </div>
             <span class="nav-link username ms-3">Welcome, {{ authStore.user?.username }}</span>
           </li>
         </ul>
