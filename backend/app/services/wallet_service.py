@@ -1,6 +1,8 @@
 from app import db
 from app.models.wallet import Wallet, Transaction, TransactionType, TransactionCategory
 from sqlalchemy.exc import IntegrityError
+from app.services.sse_service import SSEService
+from datetime import datetime, timezone
 
 
 class WalletService:
@@ -49,6 +51,22 @@ class WalletService:
 
             # Commit transaction
             db.session.commit()
+
+            # Publish wallet update event
+            sse_service = SSEService()
+            sse_service.publish_event(
+                user_id,
+                "transaction_update",
+                {
+                    "balance": wallet.current_balance,
+                    "transaction": {
+                        "amount": amount,
+                        "category": category.value,
+                        "description": description,
+                    },
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+            )
 
             return transaction
 

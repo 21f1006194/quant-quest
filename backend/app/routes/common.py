@@ -1,14 +1,17 @@
-from flask import Blueprint, jsonify
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     get_jwt_identity,
+    verify_jwt_in_request,
+    get_jwt,
+    decode_token,
 )
 from flask_restful import Resource, Api
 from app.utils import is_password_strong
 from datetime import timedelta
 from app.services.user_service import UserService
+from app.services.sse_service import SSEService
 
 common_bp = Blueprint("common", __name__)
 api = Api(common_bp)
@@ -88,6 +91,31 @@ class LogoutAPI(Resource):
         # In JWT, we don't actually need to do anything server-side
         # The client should remove the token from their storage
         return {"message": "Successfully logged out"}, 200
+
+
+@common_bp.route("/sse", methods=["GET"])
+def sse_events():
+    """SSE endpoint for real-time updates"""
+    # Get token from URL parameters
+    token = request.args.get("auth_token")
+    if not token:
+        current_app.logger.error("No token provided in SSE request")
+        return {"error": "Missing token"}, 401
+
+    try:
+        # Decode and verify the token directly
+        decoded_token = decode_token(token)
+        user_id = decoded_token[
+            "sub"
+        ]  # 'sub' is the standard JWT claim for subject/user_id
+
+        current_app.logger.info(f"SSE connection established for user {user_id}")
+
+        sse_service = SSEService()
+        return sse_service.subscribe_to_user_events(user_id)
+    except Exception as e:
+        current_app.logger.error(f"SSE Authentication Error: {str(e)}")
+        return {"error": "Invalid token"}, 401
 
 
 api.add_resource(RegisterAPI, "/register")
