@@ -30,18 +30,43 @@ class BaseGameAPI(Resource):
             return {"error": "Game not found"}, 404
 
         try:
+            changed_fields = []
             if "is_active" in data:
                 self.game.is_active = data["is_active"]
-            if "config" in data:
-                ## TODO: Validate config data format with existing config
-                self.game.config_data.update(data["config"])
+                changed_fields.append("is_active")
+            if "config_data" in data:
+                for k, v in self.game.config_data.items():
+                    if k not in data["config_data"]:
+                        return {"error": f"Missing config key: {k}"}, 400
+                    elif type(data["config_data"][k]) != type(v):
+                        return {"error": f"Invalid config value type for key: {k}"}, 400
+
+                self.game.config_data = {
+                    k: v
+                    for k, v in data["config_data"].items()
+                    if k in self.game.config_data
+                }
+                changed_fields.append("config_data")
+            if "difficulty" in data:
+                self.game.difficulty = data["difficulty"]
+                changed_fields.append("difficulty")
+            if "tags" in data:
+                self.game.tags = data["tags"]
+                changed_fields.append("tags")
             if "max_sessions_per_user" in data:
                 self.game.max_sessions_per_user = int(data["max_sessions_per_user"])
+                changed_fields.append("max_sessions_per_user")
             if "max_bets_per_session" in data:
                 self.game.max_bets_per_session = int(data["max_bets_per_session"])
-
-            db.session.commit()
-            return {"message": "Game control updated successfully"}
+                changed_fields.append("max_bets_per_session")
+            if changed_fields:
+                db.session.commit()
+                return {
+                    "message": "Game control updated successfully",
+                    "changed_fields": changed_fields,
+                }
+            else:
+                return {"message": "No changes made to game control"}, 200
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
