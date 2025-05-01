@@ -29,58 +29,58 @@
           <tr>
             <th>Game Name</th>
             <th>Active</th>
-            <th>Max sessions per user</th>
-            <th>Max bets per session</th>
-            <th>Max bet amount</th>
-            <th>Min bet amount</th>
-            <th>Payout</th>
-            <th>Save</th>
+            <th>Max Sessions</th>
+            <th>Bets per Session</th>
+            <th>Difficulty</th>
+            <th>Tags</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="game in games" :key="game.id">
             <td>{{ game.name }}</td>
             <td>
-              <input type="checkbox" v-model="game.is_active" />
+              <span :class="['status-badge', game.is_active ? 'active' : 'inactive']">
+                {{ game.is_active ? 'Active' : 'Inactive' }}
+              </span>
             </td>
+            <td>{{ game.max_sessions_per_user }}</td>
+            <td>{{ game.max_bets_per_session }}</td>
+            <td>{{ game.difficulty || '--' }}</td>
+            <td>{{ game.tags }}</td>
             <td>
-              <input type="number" v-model.number="game.max_sessions_per_user" min="1" class="wide-input" />
-            </td>
-            <td>
-              <input type="number" v-model.number="game.max_bets_per_session" min="1" />
-            </td>
-            <td>
-              <input type="number" v-model.number="game.config_data.max_bet_amount" min="1" />
-            </td>
-            <td>
-              <input type="number" v-model.number="game.config_data.min_bet_amount" min="1" />
-            </td>
-            <td>
-              <input type="number" v-model.number="game.config_data.payout" min="1" />
-            </td>
-
-
-
-            <td>
-              <button @click="saveGameSettings(game)">Save</button>
+              <div class="action-icons">
+                <span @click="openGame(game.name)" class="action-icon" title="Game Page">🎮</span>
+                <span @click="openDocs(game.name)" class="action-icon" title="Raw Page">📄</span>
+                <span @click="openEditModal(game)" class="action-icon" title="Edit Control">⚙️</span>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <EditGameControl
+      :show="showEditModal"
+      :game="selectedGame"
+      @close="closeEditModal"
+      @saved="handleGameSaved"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import api from '@/services/api'
+import EditGameControl from '@/components/modals/EditGameControl.vue'
 
 const totalUsers = ref(0)
 const totalGames = ref(0)
 const activeGames = ref(0)
 const inactiveGames = ref(0)
 const games = ref([])
+const showEditModal = ref(false)
+const selectedGame = ref(null)
 
 onMounted(async () => {
   try {
@@ -102,24 +102,38 @@ onMounted(async () => {
   }
 })
 
-const saveGameSettings = async (game) => {
-  try {
-    const encodedName = encodeURIComponent(game.name);
-    await api.post(`/game/${encodedName}/control`, {
-      is_active: game.is_active,
-      max_sessions_per_user: game.max_sessions_per_user,
-      max_bets_per_session: game.max_bets_per_session,
-      config: {
-        max_bet_amount: game.config_data.max_bet_amount,
-        min_bet_amount: game.config_data.min_bet_amount,
-        payout: game.config_data.payout
-      }
 
-    })
-    alert(`Settings saved for ${game.name}!`);
+const openGame = (gameName) => {
+  const baseUrl = window.location.origin
+  window.open(`${baseUrl}/game/${gameName}`, '_blank')
+}
+
+const openDocs = (gameName) => {
+  const baseUrl = window.location.origin
+  window.open(`${baseUrl}/game/${gameName}/docs`, '_blank')
+}
+
+const openEditModal = (game) => {
+  selectedGame.value = { ...game }
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  selectedGame.value = null
+}
+
+const handleGameSaved = async () => {
+  try {
+    const gamesListResponse = await api.get('/admin/games')
+    if (gamesListResponse.data && Array.isArray(gamesListResponse.data.games)) {
+      games.value = gamesListResponse.data.games
+      activeGames.value = games.value.filter(g => g.is_active).length
+      inactiveGames.value = games.value.filter(g => !g.is_active).length
+      totalGames.value = activeGames.value + inactiveGames.value
+    }
   } catch (error) {
-    console.error('Error saving game settings:', error.response?.data || error.message);
-    alert(`Failed to save settings for ${game.name}`);
+    console.error('Error refreshing games list:', error)
   }
 }
 </script>
@@ -150,44 +164,52 @@ const saveGameSettings = async (game) => {
 .game-table {
   width: 100%;
   border-collapse: collapse;
+  background-color: #2a2a2a;
+  color: white;
 }
 
 .game-table th,
 .game-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: center;
+  padding: 12px;
+  border: 1px solid #484848;
+  text-align: left;
 }
 
-button {
-  padding: 5px 10px;
+.game-table th {
+  background-color: #343434;
+  font-weight: bold;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.9em;
+}
+
+.status-badge.active {
   background-color: #4CAF50;
-  border: none;
   color: white;
-  border-radius: 4px;
+}
+
+.status-badge.inactive {
+  background-color: #666;
+  color: white;
+}
+
+.action-icons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.action-icon {
   cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
-button:hover {
-  background-color: #45a049;
-}
-
-input[type="number"] {
-  width: 60px;
-}
-
-/* Make this more specific to override the general input[type="number"] rule */
-input[type="number"].wide-input {
-    width: 150px;
-    padding: 8px;
-    border: 1px solid #484848;
-    border-radius: 4px;
-    background-color: #343434;
-    color: white;
-}
-
-.wide-input:focus {
-    outline: none;
-    border-color: #00ff00;
+.action-icon:hover {
+  background-color: #3a3a3a;
 }
 </style>

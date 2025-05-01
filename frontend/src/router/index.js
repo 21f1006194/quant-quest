@@ -8,7 +8,6 @@ import Register from '../views/Register.vue';
 import AdminDash from '../views/admin/AdminDash.vue';
 import PlayerDash from '../views/player/PlayerDash.vue';
 import GameWrapper from '../views/GameWrapper.vue';
-import SimpleGame from '../games/SimpleGamePage.vue';
 import PlayerGamesView from '../views/player/PlayerGamesView.vue';
 const router = createRouter({
     history: createWebHistory(),
@@ -38,7 +37,7 @@ const router = createRouter({
         {
             path: '/game/:gameName',
             component: GameWrapper,
-            meta: { requiresUser: true },
+            meta: { requiresAuth: true },
             children: [
                 {
                     path: '',
@@ -71,7 +70,7 @@ const router = createRouter({
         {
             path: '/game/:gameName/docs',
             component: GameWrapper,
-            meta: { requiresUser: true },
+            meta: { requiresAuth: true },
             children: [
                 {
                     path: '',
@@ -124,6 +123,15 @@ router.beforeEach((to, from, next) => {
         }
     }
 
+    // Check if route requires authentication
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!authStore.isAuthenticated) {
+            next({ name: 'Login' });
+            return;
+        }
+    }
+
+    // If all checks pass, proceed with navigation
     next();
 });
 
