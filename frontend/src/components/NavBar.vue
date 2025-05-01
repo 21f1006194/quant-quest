@@ -38,8 +38,12 @@
           <li class="nav-item">
             <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
           </li>
-          <li class="nav-item ms-auto">
-            <span class="nav-link username">Welcome, {{ authStore.user?.username }}</span>
+          <li class="nav-item ms-auto d-flex align-items-center">
+            <div class="wallet-balance">
+              <i class="bi bi-wallet2"></i>
+              <span>${{ walletStore.balance.toFixed(2) }}</span>
+            </div>
+            <span class="nav-link username ms-3">Welcome, {{ authStore.user?.username }}</span>
           </li>
         </ul>
 
@@ -57,8 +61,12 @@
           <li class="nav-item">
             <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
           </li>
-          <li class="nav-item ms-auto">
-            <span class="nav-link username">Welcome, {{ authStore.user?.username }}</span>
+          <li class="nav-item ms-auto d-flex align-items-center">
+            <div class="wallet-balance">
+              <i class="bi bi-wallet2"></i>
+              <span>${{ walletStore.balance.toFixed(2) }}</span>
+            </div>
+            <span class="nav-link username ms-3">Welcome, {{ authStore.user?.username }}</span>
           </li>
         </ul>
       </div>
@@ -68,10 +76,12 @@
 
 <script setup>
 import { useAuthStore } from '../store/authStore';
+import { useWalletStore } from '../store/walletStore';
 import { useRouter } from 'vue-router';
 import { computed, watchEffect } from 'vue';
 
 const authStore = useAuthStore();
+const walletStore = useWalletStore();
 const router = useRouter();
 
 const logout = () => {
@@ -139,6 +149,30 @@ watchEffect(() => {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(100, 255, 218, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
+.wallet-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: rgba(100, 255, 218, 0.1);
+  border-radius: var(--border-radius-sm);
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  transition: all var(--transition-normal);
+}
+
+.wallet-balance:hover {
+  background-color: rgba(100, 255, 218, 0.2);
+}
+
+.wallet-balance i {
+  font-size: 1.1rem;
+}
+
+.wallet-balance span {
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: var(--spacing-xs) var(--spacing-sm);
@@ -150,6 +184,21 @@ watchEffect(() => {
   
   .nav-link {
     padding: var(--spacing-xs) !important;
+  }
+  
+  .wallet-balance {
+    margin: 8px 0;
+    justify-content: center;
+  }
+  
+  .nav-item.ms-auto {
+    flex-direction: column;
+    align-items: center !important;
+  }
+  
+  .username {
+    margin-top: 8px !important;
+    margin-left: 0 !important;
   }
 }
 </style>

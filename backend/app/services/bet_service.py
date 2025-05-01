@@ -1,9 +1,11 @@
 from app import db
 from app.models.gameplay import GameSession, Bet
 from app.services.wallet_service import WalletService
+from app.services.sse_service import SSEService
 from sqlalchemy.exc import IntegrityError
 from dataclasses import dataclass
 from typing import Optional, Any
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -82,10 +84,24 @@ class BetService:
                 wallet = WalletService.get_wallet(session.user_id)
                 wallet.current_balance -= bet_data.amount
                 wallet.current_balance += bet_data.payout
-
                 db.session.add_all([bet, session, wallet])
 
             db.session.commit()
+
+            # Publish bet event
+            sse_service = SSEService()
+            sse_service.publish_event(
+                session.user_id,
+                "bet_update",
+                {
+                    "game_id": session.game_id,
+                    "amount": bet_data.amount,
+                    "payout": bet_data.payout,
+                    "balance": wallet.current_balance,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
             return bet, wallet
 
         except Exception as e:
