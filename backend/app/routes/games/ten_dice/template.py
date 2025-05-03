@@ -1,6 +1,7 @@
 # This is the template code for playing the ten dice game.
 import requests
 import json
+from time import sleep
 
 BASE_URL = "%%API_BASE_URL%%"
 API_TOKEN = "%%API_TOKEN%%"
@@ -17,6 +18,7 @@ def play(choice: int, bet_amount: int):
         headers=headers,
         data=json.dumps(payload),
     )
+    sleep(0.3)
     if response.status_code == 200 or response.status_code == 201:
         return response.json()
     elif response.status_code == 401:
