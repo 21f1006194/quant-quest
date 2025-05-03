@@ -9,5 +9,6 @@
     "default_config": {
         "min_bet_amount": 10,
         "payout": 10
-    }
+    },
+    "game_author": "Ayush Kumar"
 }
