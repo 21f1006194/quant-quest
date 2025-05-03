@@ -17,7 +17,7 @@
             <tbody>
                 <tr v-for="game in games" :key="game.id">
                     <td>{{ game.name.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}</td>
-                    <td>{{ game.plays_remaining }} / {{ game.max_sessions_per_user }}</td>
+                    <td>{{ game.max_sessions_per_user - walletStore.gameSessionsCount[game.id] }} / {{ game.max_sessions_per_user }}</td>
                     <td>{{ game.max_bets_per_session }}</td>
                     <td>{{ game.difficulty }}</td>
                     <td class="tags-cell">
@@ -28,8 +28,8 @@
                         </div>
                     </td>
                     <td>
-                        <span v-if="game.pnl > 0" class="positive-pnl">{{ game.pnl }}</span>
-                        <span v-else class="negative-pnl">{{ game.pnl }}</span>
+                        <span v-if="walletStore.gamePnls[game.id] > 0" class="positive-pnl">{{ walletStore.gamePnls[game.id] }}</span>
+                        <span v-else class="negative-pnl">{{ walletStore.gamePnls[game.id] }}</span>
                     </td>
                     <td>
                         <router-link :to="`/game/${game.name}`">
@@ -46,17 +46,25 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import api from '@/services/api';
+import { useWalletStore } from '@/store/walletStore';
 
 const games = ref([]);
 const loading = ref(false);
 const error = ref(null);
+const walletStore = useWalletStore();
 
 const fetchGames = async () => {
     loading.value = true;
     const response = await api.get('/games');
     if (response.status === 200) {
         games.value = response.data.games;
-    }else{
+        // Initialize game PNLs in wallet store
+        games.value.forEach(game => {
+            walletStore.gamePnls[game.id] = game.pnl;
+            walletStore.gameSessionsCount[game.id] = game.session_count;
+            walletStore.gameBetsCount[game.id] = game.bet_count;
+        });
+    } else {
         games.value = [];
         error.value = response.data.message;
     }

@@ -119,16 +119,11 @@ class PlayerGames(Resource):
         user_id = int(get_jwt_identity())
         print(user_id)
         games = GameService.get_active_games()
-        played_game_counts, played_game_pnl = GameService.get_games_played_data_by_user(
-            user_id
-        )
+        games_played_data = GameService.get_games_played_data_by_user(user_id)
         resp = []
         for game in games:
             resp.append(game.to_dict())
-            resp[-1]["plays_remaining"] = (
-                game.max_sessions_per_user - played_game_counts.get(game.id, 0)
-            )
-            resp[-1]["pnl"] = played_game_pnl.get(game.id, 0)
+            resp[-1].update(games_played_data.get(game.id, {}))
         return {"games": resp}, 200
 
 
