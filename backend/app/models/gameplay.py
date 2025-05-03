@@ -43,6 +43,38 @@ class Game(db.Model):
         }
 
 
+class GamePnL(db.Model):
+    __tablename__ = "game_pnls"
+
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(
+        db.Integer, db.ForeignKey("games.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    pnl = db.Column(db.Float, nullable=False, default=0.0)
+    bet_count = db.Column(db.Integer, nullable=False, default=0)
+    session_count = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "game_id": self.game_id,
+            "user_id": self.user_id,
+            "pnl": self.pnl,
+            "bet_count": self.bet_count,
+            "session_count": self.session_count,
+            "updated_at": str(self.updated_at),
+        }
+
+
 class GameSession(db.Model):
     __tablename__ = "game_sessions"
 
@@ -80,13 +112,13 @@ class GameSession(db.Model):
             if not game:
                 raise ValueError(f"Game with id {game_id} does not exist")
 
-            current_sessions_count = self.query.filter(
-                and_(
-                    self.__class__.user_id == user_id, self.__class__.game_id == game_id
+            game_pnl = GamePnL.query.filter_by(user_id=user_id, game_id=game_id).first()
+            if not game_pnl:
+                raise ValueError(
+                    f"Game PnL with user_id {user_id} and game_id {game_id} does not exist"
                 )
-            ).count()
 
-            if current_sessions_count >= game.max_sessions_per_user:
+            if game_pnl.session_count >= game.max_sessions_per_user:
                 raise ValueError(
                     f"Maximum number of sessions ({game.max_sessions_per_user}) "
                     f"reached for user {user_id} in game {game_id}"
@@ -96,6 +128,7 @@ class GameSession(db.Model):
             kwargs["max_bets_per_session"] = game.max_bets_per_session
 
         super().__init__(**kwargs)
+        game_pnl.session_count += 1
 
 
 class Bet(db.Model):

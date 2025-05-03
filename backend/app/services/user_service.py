@@ -2,6 +2,7 @@ from app import db
 from app.models import User, Wallet
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
+from app.services.game_service import GameService
 
 
 class UserService:
@@ -30,9 +31,9 @@ class UserService:
 
             # Add both to session
             db.session.add(wallet)
-
             # Commit transaction
             db.session.commit()
+            GameService.initialize_game_pnl_for_user(user.id)
 
             return user
 

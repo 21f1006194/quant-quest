@@ -1,5 +1,5 @@
 from app import db
-from app.models.gameplay import GameSession, Bet
+from app.models.gameplay import GameSession, Bet, GamePnL
 from app.services.wallet_service import WalletService
 from app.services.sse_service import SSEService
 from sqlalchemy.exc import IntegrityError
@@ -58,6 +58,9 @@ class BetService:
 
             with db.session.begin_nested():
                 session = GameSession.query.with_for_update().get(session_id)
+                game_pnl = GamePnL.query.filter_by(
+                    user_id=session.user_id, game_id=session.game_id
+                ).first()
                 if not session:
                     raise ValueError(f"Session {session_id} not found")
 
@@ -78,13 +81,18 @@ class BetService:
                     bet_details=bet_data.bet_details,
                 )
 
+                ## TODO: May be keeping both session.netflow and game pnl is not a good idea.
+                ## We should only keep one of them. (gamepnl is more useful), optimize later.
                 # Update session and wallet
                 session.bet_count += 1
                 session.net_flow += bet_data.payout - bet_data.amount
                 wallet = WalletService.get_wallet(session.user_id)
                 wallet.current_balance -= bet_data.amount
                 wallet.current_balance += bet_data.payout
-                db.session.add_all([bet, session, wallet])
+                # update the pnl for the game
+                game_pnl.pnl += bet_data.payout - bet_data.amount
+                game_pnl.bet_count += 1
+                db.session.add_all([bet, session, wallet, game_pnl])
 
             db.session.commit()
 
@@ -98,6 +106,9 @@ class BetService:
                     "amount": bet_data.amount,
                     "payout": bet_data.payout,
                     "balance": wallet.current_balance,
+                    "pnl": game_pnl.pnl,
+                    "bet_count": game_pnl.bet_count,
+                    "session_count": game_pnl.session_count,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
