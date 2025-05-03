@@ -2,11 +2,6 @@
   <div class="player-dashboard">
     <div class="dashboard-header">
       <h1>Player Dashboard</h1>
-      <div class="wallet-card">
-        <i class="bi bi-wallet2"> Balance</i>
-        <span>{{ wallet.balance }}</span>
-        <small class="wallet-timestamp">{{ new Date(wallet.last_updated).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }) }}</small>
-      </div>
     </div>
     <p>Welcome to your dashboard. Here you can view your stats and recent activities.</p>
     <div class="dashboard-cards">
@@ -27,23 +22,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import api from '@/services/api'
-
-const totalGames = ref(0)
-const totalAchievements = ref(0)
-const recentActivities = ref([])
-const wallet = ref({})
-
-const fetchDashboardData = async () => {
-  const response = await api.get('/wallet');
-  wallet.value = response.data.wallet
-}
-
-onMounted(fetchDashboardData)
-</script>
 
 <style scoped>
 .dashboard-header {
