@@ -11,3 +11,4 @@ celery
 redis
 email-validator
 flask-cors
+numpy

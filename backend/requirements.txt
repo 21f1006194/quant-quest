@@ -87,6 +87,8 @@ markupsafe==3.0.2
     #   mako
     #   werkzeug
     #   wtforms
+numpy==2.2.5
+    # via -r requirements.in
 prompt-toolkit==3.0.50
     # via click-repl
 pyjwt==2.10.1
