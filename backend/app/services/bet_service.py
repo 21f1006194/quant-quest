@@ -118,3 +118,8 @@ class BetService:
         except Exception as e:
             db.session.rollback()
             raise RuntimeError(f"Error creating bet: {str(e)}") from e
+
+    @staticmethod
+    def get_bets_for_user(user_id, game):
+        bets = Bet.query.filter_by(user_id=user_id, game_id=game.id).all()
+        return [bet.to_dict() for bet in bets]

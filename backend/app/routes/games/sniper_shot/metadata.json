@@ -1,0 +1,14 @@
+{
+    "type": "stateless",
+    "ignore": false,
+    "default_max_sessions_per_user": 1000,
+    "default_max_bets_per_session": 1,
+    "default_is_active": true,
+    "default_difficulty": "easy",
+    "default_tags": "binomial",
+    "default_config": {
+        "min_bet_amount": 10,
+        "payout": 10
+    },
+    "game_author": "Ayush Kumar"
+}
