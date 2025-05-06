@@ -67,6 +67,8 @@ flask-wtf==1.2.2
     # via -r requirements.in
 greenlet==3.1.1
     # via sqlalchemy
+gunicorn==20.1.0
+    # added manually here
 idna==3.10
     # via
     #   email-validator
@@ -91,6 +93,8 @@ numpy==2.2.5
     # via -r requirements.in
 prompt-toolkit==3.0.50
     # via click-repl
+psycopg2-binary==2.9.3
+    #added manually here
 pyjwt==2.10.1
     # via flask-jwt-extended
 python-dateutil==2.9.0.post0

@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # Backend service (Flask API)
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://postgres:supersecurepassword@db:5432/gamedb
+      REDIS_URL: redis://redis:6379/0
+    expose:
+      - "5000"  # Exposing backend port
+    restart: always
+    networks:
+      - backend-network
+
+  # Frontend service (Nginx serving the built app)
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "80:80"  # Exposing frontend to port 80
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - backend-network
+
+  # PostgreSQL database service
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # Persist data between restarts
+    restart: always
+    networks:
+      - backend-network
+
+  # Redis service (used for caching, session storage, etc.)
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    networks:
+      - backend-network
+
+# Define shared network
+networks:
+  backend-network:
+    driver: bridge
+
+# Persistent volume for PostgreSQL
+volumes:
+  pgdata:
