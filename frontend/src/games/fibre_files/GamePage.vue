@@ -1,6 +1,6 @@
 <template>
     <div class="game-page">
-      <img src="@/games/fiber_files/assets/fiber_banner.png" alt="The Fiber Files" class="header-banner" />
+    
       <h1>The Fiber Files</h1>
       <div v-if="gameData" class="game-info">
         <div class="description">
