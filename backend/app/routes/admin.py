@@ -45,7 +45,9 @@ class UserBonusAPI(Resource):
             if amount <= 0:
                 return {"error": "Amount must be positive"}, 400
 
-            description = data.get("description", "Admin bonus")
+            description = data.get("description")
+            if not description:
+                return {"error": "Description is required"}, 400
 
             transaction = WalletService.create_transaction(
                 user_id=user_id,
@@ -78,7 +80,9 @@ class UserPenaltyAPI(Resource):
             if amount <= 0:
                 return {"error": "Amount must be positive"}, 400
 
-            description = data.get("description", "Admin penalty")
+            description = data.get("description")
+            if not description:
+                return {"error": "Description is required"}, 400
 
             transaction = WalletService.create_transaction(
                 user_id=user_id,
@@ -111,7 +115,9 @@ class AllUsersBonusAPI(Resource):
             if amount <= 0:
                 return {"error": "Amount must be positive"}, 400
 
-            description = data.get("description", "Admin bonus to all users")
+            description = data.get("description")
+            if not description:
+                return {"error": "Description is required"}, 400
 
             result = WalletService.create_bonus_for_all_users(
                 amount=amount,
