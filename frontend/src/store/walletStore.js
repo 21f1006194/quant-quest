@@ -8,6 +8,7 @@ export const useWalletStore = defineStore('wallet', {
         gamePnls: {},
         gameSessionsCount: {},
         gameBetsCount: {},
+        transactions: [],
     }),
 
     actions: {
@@ -15,8 +16,16 @@ export const useWalletStore = defineStore('wallet', {
             // Subscribe to wallet and bet updates
             sseService.subscribe('wallet_update', this.handleWalletUpdate);
             sseService.subscribe('bet_update', this.betUpdate);
+            sseService.subscribe('transaction_update', this.transactionUpdate);
             sseService.connect();
         },
+
+        transactionUpdate(data) {
+            this.transactions.push(data.transaction);
+            this.balance = data.balance;
+            this.timestamp = data.timestamp;
+        },
+
         betUpdate(data) {
             this.balance = data.balance;
             this.timestamp = data.timestamp;

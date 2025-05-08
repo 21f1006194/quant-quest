@@ -32,11 +32,17 @@ class TransactionType(Enum):
     CREDIT = "credit"
     DEBIT = "debit"
 
+    def __str__(self):
+        return self.value
+
 
 class TransactionCategory(Enum):
     BONUS = "bonus"
     PENALTY = "penalty"
     EXPENSE = "expense"
+
+    def __str__(self):
+        return self.value
 
 
 class Transaction(db.Model):
@@ -81,3 +87,12 @@ class Transaction(db.Model):
             raise ValueError("Invalid transaction category")
 
         super().__init__(**kwargs)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "amount": self.amount,
+            "category": str(self.category),
+            "type": str(self.type),
+            "description": self.description,
+        }
