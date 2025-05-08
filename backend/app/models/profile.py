@@ -15,3 +15,5 @@ class UserProfile(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
+    
+    user = db.relationship("User", back_populates="profile")  # Added back_populates for bidirectional relationship

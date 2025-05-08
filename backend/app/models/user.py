@@ -23,7 +23,8 @@ class User(db.Model):
     # Relationships
     profile = db.relationship(
         "UserProfile",
-        backref=db.backref("user", uselist=False),
+        back_populates="user",  # Ensure this is consistent with the `UserProfile` model
+        uselist=False,  # Ensures one-to-one relationship
         cascade="all, delete-orphan",
     )
     verification_tokens = db.relationship(

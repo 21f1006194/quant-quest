@@ -45,12 +45,27 @@ def load_game_metadata(game_dir):
         print(f"Error loading game metadata: {e}")
         return None, None
 
-
 def create_or_update_game(game_name, metadata, description):
-    """Create or update game in database"""
+    """Create or update game in the database, with duplicate check"""
     try:
+        # Check if game already exists based on its name
         game = Game.query.filter_by(name=game_name).first()
-        if not game:
+        
+        if game:
+            # If game exists, update the description and other metadata
+            print(f"Game '{game_name}' already exists, updating it.")
+            game.description = description
+            game.type = metadata.get("type", "game")
+            game.max_sessions_per_user = metadata.get("default_max_sessions_per_user")
+            game.max_bets_per_session = metadata.get("default_max_bets_per_session")
+            game.is_active = metadata.get("default_is_active", True)
+            game.difficulty = metadata.get("default_difficulty", "easy")
+            game.tags = metadata.get("default_tags", "")
+            game.config_data = metadata.get("default_config", {})
+            
+        else:
+            # If game doesn't exist, create a new game
+            print(f"Game '{game_name}' doesn't exist, creating new entry.")
             game = Game(
                 name=game_name,
                 description=description,
@@ -63,11 +78,11 @@ def create_or_update_game(game_name, metadata, description):
                 config_data=metadata.get("default_config", {}),
             )
             db.session.add(game)
-        else:
-            game.description = description
 
+        # Commit changes to the database
         db.session.commit()
         return game
+
     except Exception as e:
         print(f"Error creating/updating game in database: {e}")
         db.session.rollback()
