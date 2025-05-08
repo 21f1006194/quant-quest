@@ -5,6 +5,7 @@ from app.utils.auth import admin_required
 from app.models.gameplay import Game
 from app.services.wallet_service import WalletService
 from app.models.wallet import TransactionCategory
+from app.services.user_service import UserService
 
 
 admin_bp = Blueprint("admin", __name__)
@@ -137,8 +138,42 @@ class AllUsersBonusAPI(Resource):
             return {"error": str(e)}, 500
 
 
+class AllUsersAPI(Resource):
+    @admin_required
+    def get(self):
+        """Get list of all users with their wallet information"""
+        try:
+            # Get all users with their wallets preloaded in a single query
+            users = UserService.get_all_users()
+
+            users_data = []
+            for user in users:
+                # Since we used joinedload, accessing wallet won't trigger additional queries
+                if user.is_admin:
+                    continue
+                wallet = user.wallet
+                user_dict = {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "wallet_balance": wallet.current_balance if wallet else None,
+                    "wallet_last_updated": (
+                        wallet.last_updated.isoformat()
+                        if wallet and wallet.last_updated
+                        else None
+                    ),
+                }
+                users_data.append(user_dict)
+
+            return {"users": users_data}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+
 api.add_resource(AdminAPI, "/admin")
 api.add_resource(GameListAPI, "/admin/games")
 api.add_resource(UserBonusAPI, "/admin/bonus/<int:user_id>")
 api.add_resource(UserPenaltyAPI, "/admin/penalty/<int:user_id>")
 api.add_resource(AllUsersBonusAPI, "/admin/bonus/to_all")
+api.add_resource(AllUsersAPI, "/admin/all_users")
