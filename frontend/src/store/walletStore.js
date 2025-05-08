@@ -48,6 +48,10 @@ export const useWalletStore = defineStore('wallet', {
             sseService.unsubscribe('wallet_update', this.handleWalletUpdate);
             sseService.unsubscribe('bet_update', this.betUpdate);
             sseService.cleanup();
+        },
+
+        setTransactions(transactions) {
+            this.transactions = transactions;
         }
     }
 });
