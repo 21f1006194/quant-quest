@@ -3,12 +3,10 @@ import os
 
 app = create_app()
 
-# Configure the database URI from environment variables
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL',
-    'postgresql://postgres:supersecurepassword@localhost:5432/gamedb'
-)
+# Connect to the PostgreSQL database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:supersecurepassword@db:5432/gamedb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 initialize_app(app) 
 

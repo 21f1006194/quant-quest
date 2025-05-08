@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-  # Backend service (Flask API)
   backend:
     build:
       context: ./backend
@@ -12,52 +11,66 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgres://postgres:supersecurepassword@db:5432/gamedb
-      REDIS_URL: redis://redis:6379/0
-    expose:
-      - "5000"  # Exposing backend port
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+    ports:
+      - "5000:5000"
     restart: always
     networks:
       - backend-network
 
-  # Frontend service (Nginx serving the built app)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+
   frontend:
     build:
       context: ./frontend
     container_name: frontend
     ports:
-      - "80:80"  # Exposing frontend to port 80
+      - "80:80"
     depends_on:
       - backend
     restart: always
     networks:
       - backend-network
 
-  # PostgreSQL database service
   db:
     image: postgres:15
     container_name: postgres-db
     env_file:
       - .env
     volumes:
-      - pgdata:/var/lib/postgresql/data  # Persist data between restarts
+      - pgdata:/var/lib/postgresql/data
     restart: always
     networks:
       - backend-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "gamedb"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
 
-  # Redis service (used for caching, session storage, etc.)
   redis:
     image: redis:alpine
     container_name: redis
     restart: always
     networks:
       - backend-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
 
-# Define shared network
 networks:
   backend-network:
     driver: bridge
 
-# Persistent volume for PostgreSQL
 volumes:
   pgdata:
