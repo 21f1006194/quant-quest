@@ -27,16 +27,31 @@ class Wallet(db.Model):
 
     __table_args__ = (db.Index("idx_wallet_user", "user_id"),)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "initial_capital": self.initial_capital,
+            "current_balance": self.current_balance,
+            "last_updated": self.last_updated,
+        }
+
 
 class TransactionType(Enum):
     CREDIT = "credit"
     DEBIT = "debit"
+
+    def __str__(self):
+        return self.value
 
 
 class TransactionCategory(Enum):
     BONUS = "bonus"
     PENALTY = "penalty"
     EXPENSE = "expense"
+
+    def __str__(self):
+        return self.value
 
 
 class Transaction(db.Model):
@@ -81,3 +96,12 @@ class Transaction(db.Model):
             raise ValueError("Invalid transaction category")
 
         super().__init__(**kwargs)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "amount": self.amount,
+            "category": str(self.category),
+            "type": str(self.type),
+            "description": self.description,
+        }

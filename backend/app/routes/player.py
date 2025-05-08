@@ -7,6 +7,7 @@ from app import db
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 from app.services.game_service import GameService
+from app.services.wallet_service import WalletService
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
@@ -127,8 +128,19 @@ class PlayerGames(Resource):
         return {"games": resp}, 200
 
 
+class PlayerTransactions(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = int(get_jwt_identity())
+        transactions = WalletService.get_transactions_by_user(user_id)
+        return {
+            "transactions": [transaction.to_dict() for transaction in transactions]
+        }, 200
+
+
 api.add_resource(APIToken, "/api-token")
 api.add_resource(PlayerProfile, "/profile")
 api.add_resource(WalletInfo, "/wallet")
 api.add_resource(RecentBets, "/recent-bets")
 api.add_resource(PlayerGames, "/games")
+api.add_resource(PlayerTransactions, "/transactions")
