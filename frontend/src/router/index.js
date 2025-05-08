@@ -9,6 +9,7 @@ import AdminDash from '../views/admin/AdminDash.vue';
 import PlayerDash from '../views/player/PlayerDash.vue';
 import GameWrapper from '../views/GameWrapper.vue';
 import PlayerGamesView from '../views/player/PlayerGamesView.vue';
+import PlayersPage from '../views/admin/PlayersPage.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -16,6 +17,12 @@ const router = createRouter({
             path: "/admin",
             name: 'Admin',
             component: AdminDash,
+            meta: { requiresAdmin: true }
+        },
+        {
+            path: "/admin/players",
+            name: 'AdminPlayers',
+            component: PlayersPage,
             meta: { requiresAdmin: true }
         },
         {

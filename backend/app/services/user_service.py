@@ -3,6 +3,7 @@ from app.models import User, Wallet
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from app.services.game_service import GameService
+from sqlalchemy.orm import joinedload
 
 
 class UserService:
@@ -60,3 +61,8 @@ class UserService:
     def get_user_by_email(email):
         """Get user by email with their wallet"""
         return User.query.filter_by(email=email).first()
+
+    @staticmethod
+    def get_all_users():
+        """Get all users with their wallets preloaded in a single query"""
+        return User.query.options(joinedload(User.wallet)).all()
