@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import sseService from '@/services/sseService';
+import { useNotificationStore } from '@/store/notificationStore';
 
 export const useWalletStore = defineStore('wallet', {
     state: () => ({
@@ -24,6 +25,13 @@ export const useWalletStore = defineStore('wallet', {
             this.transactions.push(data.transaction);
             this.balance = data.balance;
             this.timestamp = data.timestamp;
+            const notification = useNotificationStore();
+            const isBonus = data.transaction.category === 'bonus';
+            const color = isBonus ? 'green' : 'red';
+            const sign = isBonus ? '+' : '-';
+            const message = `${sign}${Math.abs(data.transaction.amount)} — ${data.transaction.description}`;
+            console.log(message, color);
+            notification.show(message, color);
         },
 
         betUpdate(data) {

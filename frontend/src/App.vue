@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <Notification />
     <nav-bar/>
     <router-view/>
   </div>
@@ -12,6 +13,7 @@ import { onMounted, onUnmounted, watch } from 'vue';
 import { useWalletStore } from '@/store/walletStore';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
+import Notification from './components/Notification.vue';
 
 const walletStore = useWalletStore();
 const authStore = useAuthStore();
