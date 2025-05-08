@@ -9,7 +9,7 @@
         </div>
       </div>
     </div>
-    <div class="dashboard-column gamepnl-column">
+    <!-- <div class="dashboard-column gamepnl-column">
       <div class="game-pnl-section">
         <h2>Game Performance</h2>
         <div class="game-pnl-grid">
@@ -29,7 +29,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     <div class="dashboard-column transactions-column">
       <div class="transactions-section">
         <h2>Bonus & Penalties</h2>
