@@ -27,6 +27,15 @@ class Wallet(db.Model):
 
     __table_args__ = (db.Index("idx_wallet_user", "user_id"),)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "initial_capital": self.initial_capital,
+            "current_balance": self.current_balance,
+            "last_updated": self.last_updated,
+        }
+
 
 class TransactionType(Enum):
     CREDIT = "credit"
