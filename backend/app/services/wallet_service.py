@@ -112,3 +112,8 @@ class WalletService:
             "total_successful": len(successful_transactions),
             "total_failed": len(failed_users),
         }
+
+    @staticmethod
+    def get_transactions_by_user(user_id):
+        """Get all transactions for a user"""
+        return Wallet.query.filter_by(user_id=user_id).first().transactions
