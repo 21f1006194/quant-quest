@@ -7,6 +7,26 @@
             </button>
         </div>
 
+        <div class="search-sort-container">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    placeholder="Search by name, username or email..."
+                    @input="handleSearch"
+                >
+            </div>
+            <button 
+                class="sort-btn" 
+                @click="toggleSort"
+                :class="{ 'active': sortDirection !== null }"
+            >
+                <i class="bi" :class="sortIcon"></i>
+                Sort by Balance
+            </button>
+        </div>
+
         <div class="players-grid">
             <div v-for="player in paginatedPlayers" :key="player.id" class="player-card">
                 <div class="player-info">
@@ -88,6 +108,9 @@ import api from "@/services/api";
 import BonusPenalityModal from "@/components/modals/BonusPenalityModal.vue";
 
 const players = ref([]);
+const filteredPlayers = ref([]);
+const searchQuery = ref('');
+const sortDirection = ref(null); // null, 'asc', or 'desc'
 const showBonusModal = ref(false);
 const showPenaltyModal = ref(false);
 const selectedUserId = ref(null);
@@ -96,13 +119,60 @@ const showBulkBonusModal = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 5;
 
-const totalPages = computed(() => Math.ceil(players.value.length / itemsPerPage));
+const sortIcon = computed(() => {
+    if (sortDirection.value === 'asc') return 'bi-sort-up';
+    if (sortDirection.value === 'desc') return 'bi-sort-down';
+    return 'bi-sort';
+});
+
+const totalPages = computed(() => Math.ceil(filteredPlayers.value.length / itemsPerPage));
 
 const paginatedPlayers = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    return players.value.slice(start, end);
+    return filteredPlayers.value.slice(start, end);
 });
+
+const handleSearch = () => {
+    currentPage.value = 1; // Reset to first page on search
+    if (!searchQuery.value.trim()) {
+        filteredPlayers.value = [...players.value];
+    } else {
+        const query = searchQuery.value.toLowerCase();
+        filteredPlayers.value = players.value.filter(player => 
+            player.full_name.toLowerCase().includes(query) ||
+            player.username.toLowerCase().includes(query) ||
+            player.email.toLowerCase().includes(query)
+        );
+    }
+    applySort();
+};
+
+const toggleSort = () => {
+    if (sortDirection.value === null) {
+        sortDirection.value = 'desc';
+    } else if (sortDirection.value === 'desc') {
+        sortDirection.value = 'asc';
+    } else {
+        sortDirection.value = null;
+    }
+    applySort();
+};
+
+const applySort = () => {
+    if (sortDirection.value === null) {
+        // If no sort direction, maintain search results order
+        return;
+    }
+    
+    filteredPlayers.value.sort((a, b) => {
+        const balanceA = parseFloat(a.wallet_balance);
+        const balanceB = parseFloat(b.wallet_balance);
+        return sortDirection.value === 'asc' 
+            ? balanceA - balanceB 
+            : balanceB - balanceA;
+    });
+};
 
 const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
@@ -111,6 +181,7 @@ const formatDate = (dateString) => {
 const fetchPlayers = async () => {
     const response = await api.get("/admin/all_users");
     players.value = response.data.users;
+    filteredPlayers.value = [...players.value];
 };
 
 const openModal = (isBonus, userId, username) => {
@@ -311,6 +382,79 @@ onMounted(() => {
     color: #666;
 }
 
+.search-sort-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    width: 70%;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    color: #666;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.sort-btn {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    min-width: 120px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.sort-btn i {
+    font-size: 1rem;
+}
+
+.sort-btn:hover {
+    background: #f8f9fa;
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.sort-btn.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.sort-btn.active:hover {
+    background: #45a049;
+    color: white;
+}
+
 @media (max-width: 900px) {
     .player-card {
         min-width: unset;
@@ -331,6 +475,21 @@ onMounted(() => {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
+    }
+
+    .search-sort-container {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .sort-btn {
+        min-width: 100px;
+        padding: 0.5rem;
     }
 }
 </style>
