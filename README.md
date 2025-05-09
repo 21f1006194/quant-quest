@@ -22,7 +22,7 @@ cd quant-quest
 
 NOTE: The code files are mounted as volumes in the containers, so any changes to the code will be reflected immediately, no need to rebuild the containers.
 The application will be available at:
-- Frontend: http://localhost
+- Frontend: http://localhost:5173
 - Backend API: http://localhost:5000
 
 ### Production Setup
