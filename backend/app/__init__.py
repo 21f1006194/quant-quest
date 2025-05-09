@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from app.config import Config
+from app.config import Config, ConfigValidator
 from app.utils import create_admin_if_not_exists
 
 db = SQLAlchemy()
@@ -20,14 +20,43 @@ def initialize_app(app):
         register_all_games(app)
 
 
-def create_app(config_class=Config):
+def create_app(config_object=None):
+    """Create and configure the Flask application.
+
+    Args:
+        config_object: Configuration object to use. If None, uses the default Config.
+    """
     app = Flask(__name__)
-    app.config.from_object(config_class)
+
+    # Use provided config or default to Config
+    app.config.from_object(config_object or Config)
+
+    # Validate environment variables if using default Config
+    if config_object is None:
+        missing_vars = ConfigValidator.validate()
+        if missing_vars:
+            raise EnvironmentError(
+                f"Missing required environment variables: {', '.join(missing_vars)}"
+            )
+
+    # Configure CORS
+    CORS(
+        app,
+        resources={
+            r"/*": {  # Allow CORS for all routes
+                "origins": app.config["CORS_ORIGINS"],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization", "Accept"],
+                "expose_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True,
+                "max_age": 3600,
+            }
+        },
+    )
 
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
     jwt.init_app(app)
 
     # Register blueprints
