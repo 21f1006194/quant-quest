@@ -3,5 +3,7 @@
 dirname=$( realpath $(dirname $0)/..)
 cd $dirname
 
-source .venv/bin/activate
+# Run database initialization
+python3 scripts/init_db.py
+
 python3 run.py
