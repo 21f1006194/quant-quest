@@ -12,3 +12,6 @@ redis
 email-validator
 flask-cors
 numpy
+psycopg2-binary
+gunicorn[gevent]
+gevent
