@@ -1,10 +1,8 @@
-from flask import Blueprint, current_app, request, jsonify
+from flask import Blueprint, request
 from flask_restful import Api
 import importlib
-import os
-import json
 from .base_game import BaseGameAPI
-from app.models.gameplay import Game
+from app.services.game_service import GameService
 from app import db
 
 
@@ -12,66 +10,6 @@ game_bp = Blueprint("game", __name__)
 play_bp = Blueprint("play", __name__)
 play_api = Api(play_bp)
 game_api = Api(game_bp)
-
-GAMES_DIR = os.path.join(os.path.dirname(__file__), "games")
-
-
-def load_game_metadata(game_dir):
-    """Load game metadata and description from files"""
-    try:
-        # Load basic metadata
-        metadata_path = os.path.join(game_dir, "metadata.json")
-        if not os.path.exists(metadata_path):
-            print(f"Warning: No metadata.json found")
-            return None, None
-
-        with open(metadata_path) as f:
-            metadata = json.load(f)
-
-        # Check if game should be ignored
-        if metadata.get("ignore", False):
-            print(f"Game is marked to be ignored")
-            return None, None
-
-        # Load description from markdown file
-        description = ""
-        desc_path = os.path.join(game_dir, "description.md")
-        if os.path.exists(desc_path):
-            with open(desc_path, "r") as f:
-                description = f.read()
-
-        return metadata, description
-    except Exception as e:
-        print(f"Error loading game metadata: {e}")
-        return None, None
-
-
-def create_or_update_game(game_name, metadata, description):
-    """Create or update game in database"""
-    try:
-        game = Game.query.filter_by(name=game_name).first()
-        if not game:
-            game = Game(
-                name=game_name,
-                description=description,
-                type=metadata.get("type", "game"),
-                max_sessions_per_user=metadata.get("default_max_sessions_per_user"),
-                max_bets_per_session=metadata.get("default_max_bets_per_session"),
-                is_active=metadata.get("default_is_active", True),
-                difficulty=metadata.get("default_difficulty", "easy"),
-                tags=metadata.get("default_tags", ""),
-                config_data=metadata.get("default_config", {}),
-            )
-            db.session.add(game)
-        else:
-            game.description = description
-
-        db.session.commit()
-        return game
-    except Exception as e:
-        print(f"Error creating/updating game in database: {e}")
-        db.session.rollback()
-        return None
 
 
 def add_game_routes(game_name, mod):
@@ -146,23 +84,18 @@ def add_game_play_routes(game_name, mod):
         return False
 
 
-def register_game(game_name, game_dir, metadata, description):
+def register_game(game_name):
     """Register a single game in the system"""
     try:
 
-        # 1. Create/update game in database
-        game = create_or_update_game(game_name, metadata, description)
-        if not game:
-            return False
-
-        # 2. Import game module
+        # 1. Import game module
         mod = importlib.import_module(f"app.routes.games.{game_name}.api")
 
-        # 3. Add common game routes
+        # 2. Add common game routes
         if not add_game_routes(game_name, mod):
             return False
 
-        # 4. Add play routes
+        # 3. Add play routes
         if not add_game_play_routes(game_name, mod):
             return False
 
@@ -177,23 +110,10 @@ def register_game(game_name, game_dir, metadata, description):
 def register_all_games(app):
     """Register all games in the games directory"""
     with app.app_context():
-        for game_name in os.listdir(GAMES_DIR):
-            if not os.path.isdir(os.path.join(GAMES_DIR, game_name)):
-                continue
-
-            game_dir = os.path.join(GAMES_DIR, game_name)
-            metadata, description = load_game_metadata(game_dir)
-
-            if metadata is None:
-                if os.path.exists(os.path.join(game_dir, "metadata.json")):
-                    print(f"Game '{game_name}' is ignored or has invalid metadata")
-                else:
-                    print(f"Game '{game_name}' has no metadata.json")
-                continue
-
-            if register_game(game_name, game_dir, metadata, description):
+        games = GameService.get_all_games()
+        for game in games:
+            game_name = game.name
+            if register_game(game_name):
                 print(f"Successfully registered game: {game_name}")
             else:
                 print(f"Failed to register game: {game_name}")
-
-

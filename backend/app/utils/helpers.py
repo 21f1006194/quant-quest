@@ -2,12 +2,13 @@ def create_admin_if_not_exists():
     """Create an admin user if one does not already exist."""
     from app.models import User
     from app import db
+    from flask import current_app
 
-    # TODO: Get these from environment variables
-    email = "admin@gmail.com"
-    username = "admin"
-    password = "admin"
-    full_name = "Admin"
+    # Get admin credentials from current app's configuration
+    email = current_app.config["ADMIN_EMAIL"]
+    username = current_app.config["ADMIN_USERNAME"]
+    password = current_app.config["ADMIN_PASSWORD"]
+    full_name = current_app.config["ADMIN_FULL_NAME"]
 
     # Check if an admin user already exists
     admin_user = User.query.filter_by(is_admin=True).first()

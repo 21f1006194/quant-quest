@@ -1,7 +1,10 @@
 from app import create_app, initialize_app
+import os
 
 app = create_app()
-initialize_app(app)  # Call this after migrations are complete
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        initialize_app(app)
+    app.run(host="0.0.0.0", port=5000, debug=True)

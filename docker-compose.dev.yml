@@ -1,0 +1,103 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: quantquest-backend-dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Security
+      SECRET_KEY: "pPUApXS4m1szHal2zqZpcid0aGObtg8PQcMKHg1d6tU"
+      JWT_SECRET_KEY: "45jLRM8WZkV9VHxqKQNNnDeNCVobi8xp_k3tuS0ZJ60"
+
+      # Database Configuration
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: gamedb
+      DB_USER: postgres
+      DB_PASSWORD: postgres_password
+
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+      # Admin Configuration
+      ADMIN_EMAIL: "admin@example.com"
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "admin"
+      ADMIN_FULL_NAME: "Admin"
+
+      # Flask Configuration
+      FLASK_ENV: development
+      FLASK_APP: app
+      FLASK_DEBUG: 1
+
+      # CORS Configuration
+      CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    networks:
+      - quantquest-network-dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: quantquest-frontend-dev
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:5000
+    networks:
+      - quantquest-network-dev
+
+  db:
+    image: postgres:15
+    container_name: quantquest-postgres-dev
+    environment:
+      POSTGRES_DB: gamedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    volumes:
+      - quantquest-pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "gamedb" ]
+      interval: 10s
+      retries: 5
+    networks:
+      - quantquest-network-dev
+
+  redis:
+    image: redis:alpine
+    container_name: quantquest-redis-dev
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      retries: 5
+    networks:
+      - quantquest-network-dev
+
+volumes:
+  quantquest-pgdata:
+
+
+networks:
+  quantquest-network-dev:
+    driver: bridge

@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from '@/store/authStore';
 
 const api = axios.create({
-    baseURL: "http://localhost:5000",
+    baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 // add token to headers
