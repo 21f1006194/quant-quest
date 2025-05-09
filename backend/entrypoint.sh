@@ -3,11 +3,12 @@
 # Make sure this file is executable:
 # chmod +x backend/entrypoint.sh
 
-# Wait for DB to be ready
-until nc -z -v -w30 db 5432; do
-  echo "Waiting for PostgreSQL to start..."
+# Wait for PostgreSQL
+echo "Waiting for PostgreSQL..."
+until pg_isready -h db -p 5432 -U "$POSTGRES_USER"; do
   sleep 1
 done
+
 
 # Run migrations
 flask db upgrade
