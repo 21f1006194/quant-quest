@@ -3,6 +3,7 @@ set -e
 
 DEV_COMPOSE_FILE="docker-compose.dev.yml"
 PROD_COMPOSE_FILE="docker-compose.yml"
+PROD_ENV_FILE=".env.prod"
 
 case "$1" in
   dev)
@@ -14,7 +15,7 @@ case "$1" in
   prod)
     shift
     echo "👉 Using production compose file..."
-    docker compose -f $PROD_COMPOSE_FILE "$@"
+    docker compose -f $PROD_COMPOSE_FILE --env-file $PROD_ENV_FILE "$@"
     ;;
 
   *)

@@ -16,5 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expose port
 EXPOSE 5000
 
-# Run the start script which handles DB init and app startup
-CMD ["sh", "scripts/start.sh"]
+# Run the entrypoint script
+CMD ["sh", "scripts/entrypoint.dev.sh"]

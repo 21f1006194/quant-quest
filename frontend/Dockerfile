@@ -9,8 +9,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Copy the source code and build the application
+# Copy the source code
 COPY . .
+
+# Create .env file with the API base URL from build arg
+ARG VITE_API_BASE_URL
+RUN echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env
+
+# Build the application
 RUN npm run build
 
 # Production stage (use Nginx to serve the frontend)
