@@ -26,4 +26,17 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy the custom Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+
+
+# Set defaults for localhost cert paths
+ARG DOMAIN_NAME
+ENV SSL_CERT_PATH="/etc/selfsigned/localhost.crt"
+ENV SSL_KEY_PATH="/etc/selfsigned/localhost.key"
+
+# If DOMAIN_NAME is a real domain, point to Let's Encrypt paths
+RUN if [ "$DOMAIN_NAME" != "localhost" ] && [ -n "$DOMAIN_NAME" ]; then \
+    export SSL_CERT_PATH="/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" && \
+    export SSL_KEY_PATH="/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem"; \
+    fi && \
+    envsubst '${DOMAIN_NAME} ${SSL_CERT_PATH} ${SSL_KEY_PATH}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf

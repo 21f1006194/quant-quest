@@ -15,7 +15,6 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: gamedb
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -38,13 +37,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     container_name: quantquest-frontend
     depends_on:
       backend:
         condition: service_healthy
     ports:
       - "80:80"
+      - "443:443"
     restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]
@@ -53,6 +53,11 @@ services:
       retries: 3
     networks:
       - quantquest-network
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - selfsigned-certs:/etc/selfsigned
+      - certbot-webroot:/var/www/html
 
   db:
     image: postgres:15
@@ -90,6 +95,30 @@ services:
     networks:
       - quantquest-network
 
+  cert-init:
+    build:
+      context: ./cert-init
+    container_name: quantquest-cert-init
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - selfsigned-certs:/etc/selfsigned
+      - certbot-webroot:/var/www/html
+
+    depends_on:
+      - frontend
+    networks:
+      - quantquest-network
+
 networks:
   quantquest-network:
     driver: bridge
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  selfsigned-certs:
+  certbot-webroot:
