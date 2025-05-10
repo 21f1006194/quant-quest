@@ -1,18 +1,25 @@
 from app import db
-from app.models import User, Wallet
+from app.models import User, Wallet, UserProfile
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from app.services.game_service import GameService
+from sqlalchemy.orm import joinedload
 
 
 class UserService:
     @staticmethod
     def create_user(email, username, password, full_name):
         """
-        Create a new user with associated wallet and API token.
+        Create a new user with associated wallet, API token, and profile.
         This is an atomic operation - either everything succeeds or nothing does.
         """
         try:
+            # Check if email or username already exists
+            if User.query.filter_by(email=email).first():
+                raise ValueError(f"User with this email already exists.")
+            if User.query.filter_by(username=username).first():
+                raise ValueError(f"User with this username already exists.")
+
             # Create user
             user = User(
                 email=email,
@@ -23,14 +30,21 @@ class UserService:
             user.set_password(password)
             user.generate_api_token()
             db.session.add(user)
-            db.session.flush()
+            db.session.flush()  # to get user.id for wallet and profile creation
 
-            cap = 10000.0
             # Create wallet
-            wallet = Wallet(user_id=user.id, initial_capital=cap, current_balance=cap)
-
-            # Add both to session
+            initial_capital = 10000.0
+            wallet = Wallet(
+                user_id=user.id,
+                initial_capital=initial_capital,
+                current_balance=initial_capital,
+            )
             db.session.add(wallet)
+
+            # Create user profile (if you have a UserProfile model)
+            profile = UserProfile(user_id=user.id)
+            db.session.add(profile)
+
             # Commit transaction
             db.session.commit()
             GameService.initialize_game_pnl_for_user(user.id)
@@ -60,3 +74,8 @@ class UserService:
     def get_user_by_email(email):
         """Get user by email with their wallet"""
         return User.query.filter_by(email=email).first()
+
+    @staticmethod
+    def get_all_users():
+        """Get all users with their wallets preloaded in a single query"""
+        return User.query.options(joinedload(User.wallet)).all()

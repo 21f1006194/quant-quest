@@ -1,0 +1,16 @@
+# Development Dockerfile for Vue frontend
+FROM node:20
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Expose dev server port (adjust if using different port)
+EXPOSE 5173
+
+# Mount the application code as volume to allow for hot reloading
+
+# Run dev server with host flag to allow external access
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
