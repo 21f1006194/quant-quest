@@ -42,6 +42,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+      cert-init:
+        condition: service_completed_successfully
     ports:
       - "80:80"
       - "443:443"
@@ -56,7 +58,6 @@ services:
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - selfsigned-certs:/etc/selfsigned
       - certbot-webroot:/var/www/html
 
   db:
@@ -105,13 +106,33 @@ services:
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - selfsigned-certs:/etc/selfsigned
       - certbot-webroot:/var/www/html
-
-    depends_on:
-      - frontend
     networks:
       - quantquest-network
+
+  cert-renewal:
+    build:
+      context: ./cert-init
+    container_name: quantquest-cert-renewal
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - certbot-webroot:/var/www/html
+    networks:
+      - quantquest-network
+    command: certbot renew --quiet
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    profiles:
+      - renewal
 
 networks:
   quantquest-network:
@@ -120,5 +141,4 @@ networks:
 volumes:
   certbot-etc:
   certbot-var:
-  selfsigned-certs:
   certbot-webroot:
