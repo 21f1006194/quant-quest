@@ -1,14 +1,5 @@
 <template>
   <div class="player-dashboard-layout">
-    <div class="dashboard-column wallet-column">
-      <div class="wallet-summary">
-        <h2>Wallet Summary</h2>
-        <div class="wallet-card">
-          <span><i class="bi bi-wallet2"></i> {{ balance }}</span>
-          <div class="wallet-timestamp">  {{ timestamp }}</div>
-        </div>
-      </div>
-    </div>
     <div class="dashboard-column games-column">
       <div class="games-section">
         <h2>Games</h2>
@@ -22,13 +13,14 @@
             </div>
             <div class="game-stats">
               <div class="stat">
-                <span class="label">Plays:</span>
+                <i class="bi bi-controller"></i>
                 <div class="progress-container">
                   <div class="progress-bar" :style="{ width: `${((game.max_sessions_per_user - walletStore.gameSessionsCount[game.id]) / game.max_sessions_per_user) * 100}%` }"></div>
+                  <span class="progress-text">{{ game.max_sessions_per_user - walletStore.gameSessionsCount[game.id] }} / {{ game.max_sessions_per_user }}</span>
                 </div>
               </div>
               <div class="stat">
-                <span class="label">PnL:</span>
+                <i class="bi bi-coin"></i>
                 <span class="value" :class="{ 'positive': walletStore.gamePnls[game.id] > 0, 'negative': walletStore.gamePnls[game.id] < 0 }">
                   {{ walletStore.gamePnls[game.id] }}
                 </span>
@@ -41,7 +33,14 @@
         </div>
       </div>
     </div>
-    <div class="dashboard-column transactions-column">
+    <div class="dashboard-column info-column">
+      <div class="wallet-summary">
+        <h2>Wallet Summary</h2>
+        <div class="wallet-card">
+          <span><i class="bi bi-wallet2"></i> {{ balance }}</span>
+          <div class="wallet-timestamp">{{ timestamp }}</div>
+        </div>
+      </div>
       <div class="transactions-section">
         <h2>Bonus & Penalties</h2>
         <div class="transactions-grid">
@@ -88,6 +87,7 @@ const fetchGames = async () => {
                 walletStore.gameSessionsCount[game.id] = game.session_count;
                 walletStore.gameBetsCount[game.id] = game.bet_count;
             });
+            console.log('Games fetched:', games.value);
         }
     } catch (error) {
         console.error('Error fetching games:', error);
@@ -111,27 +111,123 @@ onMounted(async () => {
 <style scoped>
 .player-dashboard-layout {
   display: flex;
-  height: calc(100vh - 70px); /* Adjust header height if needed */
+  height: calc(100vh - 70px);
   gap: 20px;
   padding: 20px;
   box-sizing: border-box;
 }
 
 .dashboard-column {
-  flex: 1 1 0;
-  min-width: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
   background: transparent;
   overflow-y: auto;
-  /* Optional: add a subtle border or shadow for separation */
 }
 
-.wallet-column,
-.gamepnl-column,
-.transactions-column {
-  max-width: none;
+.games-column {
+  flex: 2;
+  min-width: 0;
+}
+
+.info-column {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.games-section {
+  margin-bottom: 30px;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.game-card {
+  background-color: #343434;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #484848;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-name {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #fff;
+}
+
+.game-difficulty {
+  font-size: 0.9em;
+  color: #888;
+  padding: 2px 8px;
+  background-color: #484848;
+  border-radius: 4px;
+}
+
+.game-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+  align-items: center;
+}
+
+.stat i {
+  color: #888;
+  font-size: 1.1em;
+  margin-right: 8px;
+}
+
+.stat .value {
+  font-weight: bold;
+}
+
+.stat .value.positive {
+  color: #00ff00;
+}
+
+.stat .value.negative {
+  color: #ff0000;
+}
+
+.play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: #484848;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.play-button:hover {
+  background-color: #585858;
+}
+
+.play-button i {
+  font-size: 1.1em;
 }
 
 .wallet-summary {
@@ -229,57 +325,9 @@ onMounted(async () => {
   color: #666;
 }
 
-.games-section {
-  margin-bottom: 30px;
-}
-
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.game-card {
-  background-color: #343434;
-  padding: 15px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  border: 1px solid #484848;
-}
-
-.game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.game-name {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #fff;
-}
-
-.game-difficulty {
-  font-size: 0.9em;
-  color: #888;
-  padding: 2px 8px;
-  background-color: #484848;
-  border-radius: 4px;
-}
-
-.game-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
 .progress-container {
   position: relative;
-  width: 100px;
+  width: 100%;
   height: 8px;
   background-color: #484848;
   border-radius: 4px;
@@ -287,66 +335,34 @@ onMounted(async () => {
 }
 
 .progress-bar {
-  position: absolute;
   height: 100%;
   background-color: #00ff00;
-  border-radius: 4px;
   transition: width 0.3s ease;
 }
 
 .progress-text {
   position: absolute;
-  right: -45px;
-  font-size: 0.9em;
+  right: 0;
+  top: -20px;
+  font-size: 0.8em;
   color: #888;
 }
 
-.stat {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9em;
-  gap: 10px;
-}
-
-.play-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background-color: #484848;
-  color: #fff;
-  padding: 8px;
-  border-radius: 4px;
-  text-decoration: none;
-  transition: background-color 0.2s;
-}
-
-.play-button:hover {
-  background-color: #585858;
-}
-
-.play-button i {
-  font-size: 1.1em;
-}
-
-.positive {
-  color: #00ff00;
-}
-
-.negative {
-  color: #ff0000;
-}
 @media (max-width: 1100px) {
   .player-dashboard-layout {
     flex-direction: column;
     height: auto;
   }
+  
   .dashboard-column {
     max-width: 100% !important;
     min-width: 0;
     height: auto;
     margin-bottom: 30px;
+  }
+  
+  .info-column {
+    max-width: 100% !important;
   }
 }
 </style>
