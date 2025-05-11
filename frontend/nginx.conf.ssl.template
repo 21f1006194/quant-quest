@@ -8,12 +8,13 @@ http {
   include       mime.types;
   default_type  application/octet-stream;
 
+  # HTTP server (redirects to HTTPS)
   server {
     listen 80;
     server_name ${DOMAIN_NAME:-localhost};
 
     location /.well-known/acme-challenge/ {
-      root /usr/share/nginx/html;
+      root /var/www/html;
     }
 
     location / {
@@ -21,6 +22,7 @@ http {
     }
   }
 
+  # HTTPS server
   server {
     listen 443 ssl;
     server_name ${DOMAIN_NAME:-localhost};
@@ -62,4 +64,4 @@ http {
       chunked_transfer_encoding off;
     }
   }
-}
+} 

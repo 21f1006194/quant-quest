@@ -25,18 +25,13 @@ FROM nginx:alpine
 # Copy the built app into Nginx's default directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy the custom Nginx configuration
-COPY nginx.conf.template /etc/nginx/nginx.conf.template
+# Copy the custom Nginx configurations and entrypoint script
+COPY nginx.conf.ssl.template /etc/nginx/nginx.conf.ssl.template
+COPY nginx.conf.nonssl.template /etc/nginx/nginx.conf.nonssl.template
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
+# Create directory for certbot webroot
+RUN mkdir -p /var/www/html
 
-# Set defaults for localhost cert paths
-ARG DOMAIN_NAME
-ENV SSL_CERT_PATH="/etc/selfsigned/localhost.crt"
-ENV SSL_KEY_PATH="/etc/selfsigned/localhost.key"
-
-# If DOMAIN_NAME is a real domain, point to Let's Encrypt paths
-RUN if [ "$DOMAIN_NAME" != "localhost" ] && [ -n "$DOMAIN_NAME" ]; then \
-    export SSL_CERT_PATH="/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" && \
-    export SSL_KEY_PATH="/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem"; \
-    fi && \
-    envsubst '${DOMAIN_NAME} ${SSL_CERT_PATH} ${SSL_KEY_PATH}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+ENTRYPOINT ["/entrypoint.sh"]

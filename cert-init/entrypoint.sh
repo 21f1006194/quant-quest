@@ -3,34 +3,43 @@
 set -e
 
 DOMAIN=${DOMAIN_NAME:-}
+EMAIL=${CERTBOT_EMAIL:-}
 
-# Case: Use self-signed if empty or localhost
 if [ -z "$DOMAIN" ] || [ "$DOMAIN" = "localhost" ]; then
-  echo "Generating self-signed certificate for localhost..."
+  echo "No domain specified, skipping certificate generation"
+  exit 0
+fi
 
-  mkdir -p /etc/selfsigned
+if [ -z "$EMAIL" ]; then
+  echo "Error: CERTBOT_EMAIL environment variable is required"
+  exit 1
+fi
 
-  openssl req -x509 -nodes -days 365 \
-    -subj "/CN=localhost" \
-    -newkey rsa:2048 \
-    -keyout /etc/selfsigned/localhost.key \
-    -out /etc/selfsigned/localhost.crt
+# Function to check if certificate exists
+check_cert_exists() {
+  certbot certificates | grep -q "Domains: $DOMAIN"
+  return $?
+}
 
-  echo "✅ Self-signed cert generated."
-
-else
-  echo "Running Certbot for domain: $DOMAIN"
-
+# Function to obtain new certificate
+obtain_certificate() {
+  echo "Obtaining new certificate for domain: $DOMAIN"
   certbot certonly \
     --webroot \
     --webroot-path=/var/www/html \
-    --email "$CERTBOT_EMAIL" \
+    --email "$EMAIL" \
     --agree-tos \
     --no-eff-email \
     --non-interactive \
     --keep-until-expiring \
     --reuse-key \
     -d "$DOMAIN"
+}
 
-  echo "✅ Certbot certificate obtained."
+# Initial certificate generation
+if ! check_cert_exists; then
+  obtain_certificate
+  echo "✅ Initial certificate obtained"
+else
+  echo "✅ Certificate already exists for $DOMAIN"
 fi
