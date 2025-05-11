@@ -3,6 +3,8 @@ from app.models import User, Wallet, UserProfile
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from app.services.game_service import GameService
+from app.services.wallet_service import WalletService
+from app.models.wallet import TransactionCategory
 from sqlalchemy.orm import joinedload
 
 
@@ -47,6 +49,19 @@ class UserService:
 
             # Commit transaction
             db.session.commit()
+
+            # Add joining bonus
+            try:
+                WalletService.create_transaction(
+                    user_id=user.id,
+                    amount=2000.0,
+                    category=TransactionCategory.BONUS,
+                    description="Welcome bonus!",
+                )
+            except Exception as e:
+                # Log the error but don't fail the user creation
+                print(f"Failed to add joining bonus for user {user.id}: {str(e)}")
+
             GameService.initialize_game_pnl_for_user(user.id)
 
             return user
