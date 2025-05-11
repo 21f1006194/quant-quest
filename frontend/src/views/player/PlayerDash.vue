@@ -20,7 +20,7 @@
                 </div>
               </div>
               <div class="stat">
-                <i class="bi bi-coin"></i>
+                <img :src="CoinIcon" class="coin-icon" alt="coin" />
                 <span class="value" :class="{ 'positive': walletStore.gamePnls[game.id] > 0, 'negative': walletStore.gamePnls[game.id] < 0 }">
                   {{ walletStore.gamePnls[game.id] }}
                 </span>
@@ -37,7 +37,7 @@
       <div class="wallet-summary">
         <h2>Wallet Summary</h2>
         <div class="wallet-card">
-          <span><i class="bi bi-wallet2"></i> {{ balance }}</span>
+          <span><img :src="CoinIcon" class="coin-icon" alt="coin" /> {{ balance }}</span>
           <div class="wallet-timestamp">{{ timestamp }}</div>
         </div>
       </div>
@@ -51,7 +51,11 @@
               {{ transaction.type === 'credit' ? '+' : '-' }}{{ transaction.amount }}
             </div>
             <div class="transaction-details">
-              <div class="transaction-category">{{ transaction.category }}</div>
+              <div class="transaction-category">
+                <i v-if="transaction.category === 'penalty'" class="bi bi-exclamation-triangle-fill"></i>
+                <i v-else-if="transaction.category === 'bonus'" class="bi bi-gift"></i>
+                <span v-else>{{ transaction.category }}</span>
+              </div>
               <div class="transaction-description">{{ transaction.description }}</div>
             </div>
           </div>
@@ -65,6 +69,7 @@
 import { onMounted, computed, ref } from 'vue';
 import { useWalletStore } from '@/store/walletStore';
 import api from '@/services/api';
+import CoinIcon from '@/assets/coins-solid.svg';
 
 const walletStore = useWalletStore();
 const games = ref([]);
@@ -253,12 +258,26 @@ onMounted(async () => {
   margin-right: 8px;
 }
 
+.coin-icon {
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 8px;
+  filter: invert(1);
+}
+
 .wallet-card span {
   font-size: 1.5em;
   font-weight: bold;
   color: #fff;
   display: flex;
   align-items: center;
+}
+
+.stat .coin-icon {
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 8px;
+  filter: invert(1);
 }
 
 .wallet-timestamp {
@@ -315,9 +334,22 @@ onMounted(async () => {
 }
 
 .transaction-category {
-  font-weight: bold;
-  text-transform: capitalize;
   font-size: 0.95em;
+  display: flex;
+  align-items: center;
+}
+
+.transaction-category i {
+  font-size: 1.1em;
+  margin-right: 4px;
+}
+
+.transaction-category i.bi-exclamation-triangle-fill {
+  color: #ff6b6b;
+}
+
+.transaction-category i.bi-gift {
+  color: #4ecdc4;
 }
 
 .transaction-description {
