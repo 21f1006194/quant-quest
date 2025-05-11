@@ -15,7 +15,6 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: gamedb
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -38,21 +37,31 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     container_name: quantquest-frontend
     depends_on:
       backend:
         condition: service_healthy
+      cert-init:
+        condition: service_completed_successfully
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
     ports:
       - "80:80"
+      - "443:443"
     restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 10s
     networks:
       - quantquest-network
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - certbot-webroot:/var/www/html
 
   db:
     image: postgres:15
@@ -90,6 +99,51 @@ services:
     networks:
       - quantquest-network
 
+  cert-init:
+    build:
+      context: ./cert-init
+    container_name: quantquest-cert-init
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+    ports:
+      - "80:80"
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - certbot-webroot:/var/www/html
+    networks:
+      - quantquest-network
+
+  cert-renewal:
+    build:
+      context: ./cert-init
+    container_name: quantquest-cert-renewal
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - certbot-webroot:/var/www/html
+    networks:
+      - quantquest-network
+    command: certbot renew --quiet
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    profiles:
+      - renewal
+
 networks:
   quantquest-network:
     driver: bridge
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  certbot-webroot:
