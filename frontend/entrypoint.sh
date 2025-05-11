@@ -2,7 +2,7 @@
 
 set -e
 
-DOMAIN=${DOMAIN_NAME:-localhost}
+DOMAIN=${DOMAIN_NAME}
 CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 KEY_PATH="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
@@ -18,11 +18,23 @@ generate_nginx_config() {
     echo "SSL certificates found, configuring HTTPS..."
     export SSL_CERT_PATH="$CERT_PATH"
     export SSL_KEY_PATH="$KEY_PATH"
-    envsubst '${DOMAIN_NAME} ${SSL_CERT_PATH} ${SSL_KEY_PATH}' < /etc/nginx/nginx.conf.ssl.template > /etc/nginx/nginx.conf
+    export DOMAIN_NAME="$DOMAIN"
+    export host='$host'
+    export uri='$uri'
+    export request_uri='$request_uri'
+    export http_upgrade='$http_upgrade'
+    envsubst < /etc/nginx/nginx.conf.ssl.template > /etc/nginx/nginx.conf
   else
     echo "No SSL certificates found, configuring HTTP only..."
-    envsubst '${DOMAIN_NAME}' < /etc/nginx/nginx.conf.nonssl.template > /etc/nginx/nginx.conf
+    export DOMAIN_NAME="$DOMAIN"
+    export host='$host'
+    export uri='$uri'
+    export request_uri='$request_uri'
+    export http_upgrade='$http_upgrade'
+    envsubst < /etc/nginx/nginx.conf.nonssl.template > /etc/nginx/nginx.conf
   fi
+  echo "Nginx configuration generated"
+  cat /etc/nginx/nginx.conf
 }
 
 # Initial configuration

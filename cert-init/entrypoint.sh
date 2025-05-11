@@ -36,6 +36,10 @@ obtain_certificate() {
     -d "$DOMAIN"
 }
 
+# Start nginx in the background
+echo "Starting nginx..."
+nginx
+
 # Initial certificate generation
 if ! check_cert_exists; then
   obtain_certificate
@@ -43,3 +47,12 @@ if ! check_cert_exists; then
 else
   echo "✅ Certificate already exists for $DOMAIN"
 fi
+
+# Stop nginx
+echo "Stopping nginx..."
+nginx -s quit
+
+# Exit successfully
+echo "Certificate initialization complete, exiting..."
+exit 0
+
