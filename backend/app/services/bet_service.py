@@ -29,6 +29,10 @@ class BetData:
 
 class BetService:
     @staticmethod
+    def get_bet(bet_id: int) -> Bet:
+        return Bet.query.get(bet_id)
+
+    @staticmethod
     def validate_bet_amount(user_id, amount):
         """Validate if user has enough balance for the bet"""
         current_balance = WalletService.get_balance(user_id)
@@ -103,6 +107,7 @@ class BetService:
                 "bet_update",
                 {
                     "game_id": session.game_id,
+                    "bet_id": bet.id,
                     "amount": bet_data.amount,
                     "payout": bet_data.payout,
                     "balance": wallet.current_balance,
@@ -123,3 +128,91 @@ class BetService:
     def get_bets_for_user(user_id, game):
         bets = Bet.query.filter_by(user_id=user_id, game_id=game.id).all()
         return [bet.to_dict() for bet in bets]
+
+    @staticmethod
+    def update_bet(bet_id: int, session_id: int, bet_data: BetData) -> Bet:
+        """
+        Update an existing bet with proper transaction handling.
+
+        Args:
+            bet_id: The ID of the bet to update
+            session_id: The ID of the game session
+            bet_data: Standardized bet data for the update
+
+        Returns:
+            Bet: The updated bet instance
+        """
+        try:
+            # Validate bet data
+            bet_data.validate()
+
+            with db.session.begin_nested():
+                # Get the existing bet and session with lock
+                bet = Bet.query.with_for_update().get(bet_id)
+                session = GameSession.query.with_for_update().get(session_id)
+                game_pnl = (
+                    GamePnL.query.filter_by(
+                        user_id=session.user_id, game_id=session.game_id
+                    )
+                    .with_for_update()
+                    .first()
+                )
+
+                if not bet:
+                    raise ValueError(f"Bet {bet_id} not found")
+                if not session:
+                    raise ValueError(f"Session {session_id} not found")
+                if bet.session_id != session_id:
+                    raise ValueError("Bet does not belong to the specified session")
+
+                # Calculate the difference in amount and payout
+                amount_diff = bet_data.amount - bet.amount
+                payout_diff = bet_data.payout - bet.payout
+                total_diff = payout_diff - amount_diff
+
+                # Validate wallet balance if amount is increasing
+                if amount_diff > 0:
+                    BetService.validate_bet_amount(session.user_id, amount_diff)
+
+                # Update bet details
+                bet.amount = bet_data.amount
+                bet.choice = bet_data.choice
+                bet.payout = bet_data.payout
+                bet.bet_details = bet_data.bet_details
+
+                # Update session and wallet
+                session.net_flow += total_diff
+                wallet = WalletService.get_wallet(session.user_id)
+                wallet.current_balance -= amount_diff
+                wallet.current_balance += payout_diff
+
+                # Update game PnL
+                game_pnl.pnl += total_diff
+
+                db.session.add_all([bet, session, wallet, game_pnl])
+
+            db.session.commit()
+
+            # Publish bet update event
+            sse_service = SSEService()
+            sse_service.publish_event(
+                session.user_id,
+                "bet_update",
+                {
+                    "game_id": session.game_id,
+                    "bet_id": bet.id,
+                    "amount": bet_data.amount,
+                    "payout": bet_data.payout,
+                    "balance": wallet.current_balance,
+                    "pnl": game_pnl.pnl,
+                    "bet_count": game_pnl.bet_count,
+                    "session_count": game_pnl.session_count,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
+            return bet, wallet
+
+        except Exception as e:
+            db.session.rollback()
+            raise RuntimeError(f"Error updating bet: {str(e)}") from e
