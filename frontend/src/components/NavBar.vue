@@ -59,8 +59,8 @@
           </li>
           <li class="nav-item ms-auto d-flex align-items-center">
             <div class="wallet-balance">
-              <i class="bi bi-wallet2"></i>
-              <span>${{ walletStore.balance.toFixed(2) }}</span>
+              <img :src="CoinIcon" class="coin-icon" alt="coin" />
+              <span>{{ walletStore.balance.toFixed(2) }}</span>
             </div>
             <span class="nav-link username ms-3">Welcome, {{ authStore.user?.username }}</span>
           </li>
@@ -71,10 +71,11 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '../store/authStore';
-import { useWalletStore } from '../store/walletStore';
+import { useAuthStore } from '@/store/authStore';
+import { useWalletStore } from '@/store/walletStore';
 import { useRouter } from 'vue-router';
 import { computed, watchEffect } from 'vue';
+import CoinIcon from '@/assets/coins-solid.svg';
 
 const authStore = useAuthStore();
 const walletStore = useWalletStore();
@@ -149,24 +150,18 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  background-color: rgba(100, 255, 218, 0.1);
-  border-radius: var(--border-radius-sm);
-  color: var(--primary-color);
-  font-size: 0.9rem;
-  transition: all var(--transition-normal);
+  color: #00ff00;
+  font-weight: bold;
 }
 
-.wallet-balance:hover {
-  background-color: rgba(100, 255, 218, 0.2);
+.coin-icon {
+  width: 1.2em;
+  height: 1.2em;
+  filter: invert(1) sepia(1) saturate(10000%) hue-rotate(80deg);
 }
 
-.wallet-balance i {
-  font-size: 1.1rem;
-}
-
-.wallet-balance span {
-  font-weight: 500;
+.username {
+  color: #fff;
 }
 
 @media (max-width: 768px) {
