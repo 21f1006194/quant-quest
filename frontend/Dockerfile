@@ -25,5 +25,13 @@ FROM nginx:alpine
 # Copy the built app into Nginx's default directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy the custom Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy the custom Nginx configurations and entrypoint script
+COPY nginx.conf.ssl.template /etc/nginx/nginx.conf.ssl.template
+COPY nginx.conf.nonssl.template /etc/nginx/nginx.conf.nonssl.template
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Create directory for certbot webroot
+RUN mkdir -p /var/www/html
+
+ENTRYPOINT ["/entrypoint.sh"]
