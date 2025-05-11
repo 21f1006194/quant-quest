@@ -9,27 +9,38 @@
         </div>
       </div>
     </div>
-    <!-- <div class="dashboard-column gamepnl-column">
-      <div class="game-pnl-section">
-        <h2>Game Performance</h2>
-        <div class="game-pnl-grid">
-          <div v-for="(pnl, gameId) in gamePnls" 
-               :key="gameId" 
-               class="game-pnl-card">
-            <div class="game-pnl-row">
-              <div class="game-name">Game {{ gameId }}</div>
-              <div class="pnl-value" :class="{ 'positive': pnl > 0, 'negative': pnl < 0 }">
-                {{ pnl > 0 ? '+' : '' }}{{ pnl }}
+    <div class="dashboard-column games-column">
+      <div class="games-section">
+        <h2>Games</h2>
+        <div class="games-grid">
+          <div v-for="game in games" 
+               :key="game.id" 
+               class="game-card">
+            <div class="game-header">
+              <div class="game-name">{{ game.name.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}</div>
+              <div class="game-difficulty">{{ game.difficulty }}</div>
+            </div>
+            <div class="game-stats">
+              <div class="stat">
+                <span class="label">Plays:</span>
+                <div class="progress-container">
+                  <div class="progress-bar" :style="{ width: `${((game.max_sessions_per_user - walletStore.gameSessionsCount[game.id]) / game.max_sessions_per_user) * 100}%` }"></div>
+                </div>
               </div>
-              <div class="game-stats">
-                <span>Sessions: {{ gameSessionsCount[gameId] }}</span>
-                <span>Bets: {{ gameBetsCount[gameId] }}</span>
+              <div class="stat">
+                <span class="label">PnL:</span>
+                <span class="value" :class="{ 'positive': walletStore.gamePnls[game.id] > 0, 'negative': walletStore.gamePnls[game.id] < 0 }">
+                  {{ walletStore.gamePnls[game.id] }}
+                </span>
               </div>
             </div>
+            <router-link :to="`/game/${game.name}`" class="play-button">
+              <i class="bi bi-play-btn-fill"></i> Play
+            </router-link>
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
     <div class="dashboard-column transactions-column">
       <div class="transactions-section">
         <h2>Bonus & Penalties</h2>
@@ -52,11 +63,12 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useWalletStore } from '@/store/walletStore';
 import api from '@/services/api';
 
 const walletStore = useWalletStore();
+const games = ref([]);
 
 const balance = computed(() => walletStore.balance);
 const timestamp = computed(() => walletStore.timestamp);
@@ -64,6 +76,23 @@ const transactions = computed(() => walletStore.transactions);
 const gamePnls = computed(() => walletStore.gamePnls);
 const gameSessionsCount = computed(() => walletStore.gameSessionsCount);
 const gameBetsCount = computed(() => walletStore.gameBetsCount);
+
+const fetchGames = async () => {
+    try {
+        const response = await api.get('/games');
+        if (response.status === 200) {
+            games.value = response.data.games;
+            // Initialize game PNLs in wallet store
+            games.value.forEach(game => {
+                walletStore.gamePnls[game.id] = game.pnl;
+                walletStore.gameSessionsCount[game.id] = game.session_count;
+                walletStore.gameBetsCount[game.id] = game.bet_count;
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching games:', error);
+    }
+};
 
 onMounted(async () => {
   console.log('PlayerDash mounted! Fetching transactions...');
@@ -74,6 +103,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching transactions:', error);
   }
+  await fetchGames();
   walletStore.initializeSSE();
 });
 </script>
@@ -199,54 +229,114 @@ onMounted(async () => {
   color: #666;
 }
 
-.game-pnl-section {
+.games-section {
   margin-bottom: 30px;
 }
 
-.game-pnl-grid {
+.games-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
   margin-top: 15px;
 }
 
-.game-pnl-card {
+.game-card {
   background-color: #343434;
-  padding: 10px 12px;
+  padding: 15px;
   border-radius: 8px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #484848;
 }
 
-.game-pnl-card h3 {
-  margin: 0 0 8px 0;
-  color: #fff;
-  font-size: 1em;
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.pnl-value {
-  font-size: 1.1em;
+.game-name {
   font-weight: bold;
-  margin-bottom: 6px;
+  font-size: 1.1em;
+  color: #fff;
 }
 
-.pnl-value.positive {
-  color: #00ff00;
-}
-
-.pnl-value.negative {
-  color: #ff0000;
+.game-difficulty {
+  font-size: 0.9em;
+  color: #888;
+  padding: 2px 8px;
+  background-color: #484848;
+  border-radius: 4px;
 }
 
 .game-stats {
-  font-size: 0.85em;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.progress-container {
+  position: relative;
+  width: 100px;
+  height: 8px;
+  background-color: #484848;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  position: absolute;
+  height: 100%;
+  background-color: #00ff00;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  right: -45px;
+  font-size: 0.9em;
   color: #888;
 }
 
-.game-stats div {
-  margin: 2px 0;
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9em;
+  gap: 10px;
 }
 
+.play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: #484848;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.play-button:hover {
+  background-color: #585858;
+}
+
+.play-button i {
+  font-size: 1.1em;
+}
+
+.positive {
+  color: #00ff00;
+}
+
+.negative {
+  color: #ff0000;
+}
 @media (max-width: 1100px) {
   .player-dashboard-layout {
     flex-direction: column;
