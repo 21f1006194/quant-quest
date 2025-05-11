@@ -13,6 +13,10 @@ class GameService:
         return Game.query.get(game_id)
 
     @staticmethod
+    def get_game_by_name(game_name):
+        return Game.query.filter_by(name=game_name).first()
+
+    @staticmethod
     def get_active_games():
         return Game.query.filter_by(is_active=True).all()
 
