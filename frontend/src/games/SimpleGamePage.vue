@@ -31,7 +31,7 @@ const renderedDescription = computed(() => {
 })
 
 onMounted(async () => {
-    template.value = await getGameTemplate('ten_dice')
+    template.value = await getGameTemplate(gameData.name)
 })
 </script>
 
