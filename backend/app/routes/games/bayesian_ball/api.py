@@ -3,7 +3,7 @@ from flask import request
 from app.utils.auth import api_token_required, get_api_user
 from app.utils.rate_limit import session_rate_limit, bets_rate_limit
 from .engine import BayesianBall
-from app.services import BetService, BetData, GameSessionService
+from app.services import BetService, BetData, GameSessionService, GameService
 
 
 class GamePlayAPI(Resource):
@@ -27,14 +27,24 @@ class GamePlayAPI(Resource):
     @session_rate_limit("bayesian_ball")
     def post(self):
         user = get_api_user()
-        data = request.get_json()
+        game_pnl = GameService.get_game_pnl_by_user(user.id, self.engine.game.id)
+        if game_pnl.bet_count != game_pnl.session_count:
+            session = GameSessionService.get_last_game_session_by_user(
+                user.id, self.engine.game.id
+            )
+            show_balls = session.session_data["balls"][:-1]
+
+            return {
+                "session_id": session.id,
+                "balls": show_balls,
+                "message": "Continue the game",
+            }, 200
         session_data = self.engine.new_game()
         show_balls = session_data["balls"][:-1]
-        # TODO: create a new session
         session_id = GameSessionService.create_game_session(
             user.id, self.engine.game.id, session_data
         )
-        return {"session_id": session_id, "balls": show_balls}
+        return {"session_id": session_id, "balls": show_balls}, 201
 
     @api_token_required
     def patch(self):
@@ -53,7 +63,7 @@ class GamePlayAPI(Resource):
         session = GameSessionService.validate_game_session(
             user.id, self.engine.game.id, session_id
         )
-        if session.max_bets_per_session >= session.bet_count:
+        if session.max_bets_per_session <= session.bet_count:
             return {"error": "max_bets_per_session reached"}, 400
         payout = self.engine.get_result(choice, bet_amount, session.session_data)
         bet, wallet = BetService.create_bet(
