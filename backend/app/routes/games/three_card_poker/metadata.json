@@ -1,0 +1,13 @@
+{
+    "type": "stateful",
+    "ignore": false,
+    "default_max_sessions_per_user": 200,
+    "default_max_bets_per_session": 5,
+    "default_is_active": true,
+    "default_difficulty": "hard",
+    "default_tags": "bayesian,cards",
+    "default_config": {
+        "min_bet_amount": 100,
+        "payout": 3
+    }
+}
