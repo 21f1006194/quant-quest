@@ -37,3 +37,4 @@ class GameSessionService:
             .order_by(GameSession.id.desc())
             .first()
         )
+
