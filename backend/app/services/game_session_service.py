@@ -29,3 +29,11 @@ class GameSessionService:
         if not session:
             raise ValueError("Invalid session")
         return session
+
+    @staticmethod
+    def get_last_game_session_by_user(user_id, game_id):
+        return (
+            GameSession.query.filter_by(user_id=user_id, game_id=game_id)
+            .order_by(GameSession.id.desc())
+            .first()
+        )
