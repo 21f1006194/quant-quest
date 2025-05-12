@@ -2,7 +2,7 @@ from flask_restful import Resource
 from flask import request
 from app.utils.auth import api_token_required, get_api_user
 from app.utils.rate_limit import session_rate_limit, bets_rate_limit
-from .engine import ThreeCardPoker
+from .engine import ThreeCardPoker, HAND_TYPES
 from app.services import GameSessionService, BetService, BetData
 
 
@@ -28,7 +28,6 @@ class GamePlayAPI(Resource):
         return {"session_id": session_id}
 
     @api_token_required
-    @bets_rate_limit("three_card_poker")
     def patch(self):
         user = get_api_user()
         data = request.get_json()
@@ -40,7 +39,10 @@ class GamePlayAPI(Resource):
             return {"error": "unauthorized"}, 401
         if session.game_id != self.engine.game.id:
             return {"error": "invalid session"}, 400
-
+        if session.bet_count >= self.engine.max_bet_per_session:
+            return {
+                "error": f"You have played {session.bet_count} bets, max is {self.engine.max_bet_per_session} per game."
+            }, 400
         bet_details = session.session_data[str(session.bet_count)]
         # base_bet :  return the player hand
         # second_bet : return the house hand and the result
@@ -53,7 +55,11 @@ class GamePlayAPI(Resource):
                 bet_details=bet_details,
             )
             bet, wallet = BetService.create_bet(session_id, bet_data)
-            return {"bet_id": bet.id, "hand": bet_details["player_hand"]}
+            return {
+                "bet_id": bet.id,
+                "hand": bet_details["player_hand"],
+                "hand_type": HAND_TYPES[bet_details["player_hand_value"][0]],
+            }
 
         elif "raise_bet" in data and "bet_id" in data:
             bet = BetService.get_bet(data["bet_id"])
@@ -82,7 +88,9 @@ class GamePlayAPI(Resource):
             return {
                 "bet_id": bet.id,
                 "hand": bet_details["player_hand"],
+                "hand_type": HAND_TYPES[bet_details["player_hand_value"][0]],
                 "house_hand": bet_details["house_hand"],
+                "house_hand_type": HAND_TYPES[bet_details["house_hand_value"][0]],
                 "total_bet": bet_details["base_bet"] + bet_details["raise_bet"],
                 "action": bet.choice,
                 "payout": bet_data.payout,

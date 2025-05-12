@@ -1,10 +1,28 @@
 import random
 from typing import List
+
 from app.services import GameService
 
 SUITS = ["S", "C", "D", "H"]  # Spades, Clubs, Diamonds, Hearts
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
 RANK_VALUES = {r: i for i, r in enumerate(RANKS, start=2)}
+HAND_RANKS = {
+    "straight_flush": 1,
+    "three_of_a_kind": 2,
+    "straight": 3,
+    "flush": 4,
+    "pair": 5,
+    "high_card": 6,
+}
+HAND_TYPES = [
+    "Invalid",
+    "Straight Flush",
+    "Three of a Kind",
+    "Straight",
+    "Flush",
+    "Pair",
+    "High Card",
+]
 
 
 class Card:
@@ -57,11 +75,39 @@ class ThreeCardPoker:
         return session_data
 
     def hand_value(self, hand: List[Card]):
-        return sum(RANK_VALUES[card.rank] for card in hand)
+        values = sorted([RANK_VALUES[card.rank] for card in hand], reverse=True)
+        suits = [card.suit for card in hand]
+        unique_values = set(values)
+        is_flush = len(set(suits)) == 1
+        is_straight = len(unique_values) == 3 and max(values) - min(values) == 2
+
+        # Handle special low-Ace straight (A, 2, 3)
+        if set(values) == {14, 2, 3}:
+            is_straight = True
+            values = [3, 2, 1]  # Treat Ace as 1 in this case
+
+        if is_straight and is_flush:
+            return (HAND_RANKS["straight_flush"], values)
+        elif len(unique_values) == 1:
+            return (HAND_RANKS["three_of_a_kind"], values)
+        elif is_straight:
+            return (HAND_RANKS["straight"], values)
+        elif is_flush:
+            return (HAND_RANKS["flush"], values)
+        elif len(unique_values) == 2:
+            # It's a pair + 1 kicker
+            pair_value = max(set(values), key=values.count)
+            kicker = min(set(values), key=values.count)
+            return (HAND_RANKS["pair"], [pair_value, kicker])
+        else:
+            return (HAND_RANKS["high_card"], values)
 
     def result(self, bet_details):
         total_bet = bet_details["base_bet"] + bet_details["raise_bet"]
-        if bet_details["player_hand_value"] > bet_details["house_hand_value"]:
+        player_hand_value = tuple(bet_details["player_hand_value"])
+        house_hand_value = tuple(bet_details["house_hand_value"])
+
+        if player_hand_value < house_hand_value:
             return total_bet * self.payout
         else:
             return 0.0
