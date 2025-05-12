@@ -33,8 +33,11 @@ class GameService:
         return {game_pnl.game_id: game_pnl.to_dict() for game_pnl in game_pnls}
 
     @staticmethod
-    def get_game_pnl_by_user(user_id):
-        return GamePnL.query.filter_by(user_id=user_id).all()
+    def get_game_pnl_by_user(user_id, game_id=None):
+        if game_id:
+            return GamePnL.query.filter_by(user_id=user_id, game_id=game_id).first()
+        else:
+            return GamePnL.query.filter_by(user_id=user_id).all()
 
     @staticmethod
     def initialize_game_pnl_for_user(user_id):
