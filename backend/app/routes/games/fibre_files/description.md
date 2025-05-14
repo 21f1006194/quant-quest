@@ -1,4 +1,4 @@
-Welcome to The Fiber Files, a thrilling mystery game powered by Bayesian logic.
+Welcome to The Fibre Files, a thrilling mystery game powered by Bayesian logic.
 A crime has been committed. 10 suspects. One culprit.
 Can you guess who did it?
 
