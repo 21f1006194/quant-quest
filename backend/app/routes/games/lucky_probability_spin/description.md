@@ -1,32 +1,19 @@
-#  Lucky Probability Spin
+## 🎯 Lucky Probability Spin
 
-Spin the wheel, pick a color, and test your luck with probability and expected value insights!
+### Game Description
+A spin-the-wheel game with unequal-sized segments. Players bet on a color segment. The rarer the segment, the higher the payout.
 
-## Final Game Design
+### Segments
+| Color   | Angle | Probability | Payout |
+|---------|--------|-------------|--------|
+| Red     | 36°    | 10%         | 100    |
+| Blue    | 54°    | 15%         | 75     |
+| Green   | 90°    | 25%         | 50     |
+| Yellow  | 108°   | 30%         | 25     |
+| Purple  | 72°    | 20%         | 40     |
 
-| Segment (Color) | Angle (°) | Probability (%) | Payout (Points) |
-|------------------|------------|-------------------|---------------------|
-| Red              | 36°        | 10%               | 100                 |
-| Blue             | 54°        | 15%               | 75                  |
-| Green            | 90°        | 25%               | 50                  |
-| Yellow           | 108°       | 30%               | 25                  |
-| Purple           | 72°        | 20%               | 40                  |
-| **Total**        | 360°       | 100%              |                     |
+### Expected Value (EV)
+EV = (0.10×100) + (0.15×75) + (0.25×50) + (0.30×25) + (0.20×40) = **49.25 points**
 
-## Expected Value
-\[
-EV = \sum (\text{probability} \times \text{payout}) = 49.25 \text{ points}
-\]
-
-## API
-- **POST** `/api/lucky_spin/`
-  - Request: `{ "choice": "Red" }`
-  - Response:
-    ```json
-    {
-        "result": "Blue",
-        "payout": 0,
-        "won": false,
-        "expected_value": 49.25
-    }
-    ```
+### Statistical Edge
+The game teaches non-uniform probability. Smaller segments mean higher rewards but lower chances. It visualizes expected value and decision-making under uncertainty.

@@ -8,23 +8,14 @@ segments = [
     {"color": "Purple", "angle": 72, "prob": 0.20, "payout": 40},
 ]
 
-def calculate_ev():
-    return sum(seg["prob"] * seg["payout"] for seg in segments)
-
-def spin_wheel(user_choice):
+def spin_wheel():
     colors = [seg["color"] for seg in segments]
     weights = [seg["prob"] for seg in segments]
     result = random.choices(colors, weights=weights, k=1)[0]
-    
-    payout = 0
-    won = False
-    if result == user_choice:
-        payout = next(seg["payout"] for seg in segments if seg["color"] == result)
-        won = True
+    return result
 
-    return {
-        "result": result,
-        "payout": payout,
-        "won": won,
-        "expected_value": calculate_ev()
-    }
+def get_segment_by_color(color):
+    return next((seg for seg in segments if seg["color"].lower() == color.lower()), None)
+
+def get_expected_value():
+    return sum(seg["prob"] * seg["payout"] for seg in segments)

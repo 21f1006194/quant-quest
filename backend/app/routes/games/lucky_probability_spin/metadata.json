@@ -5,7 +5,7 @@
     "default_max_bets_per_session": 1,
     "default_is_active": true,
     "default_difficulty": "medium",
-    "default_tags": "probability",
+    "default_tags": "probability, expected_value",
     "default_config": {
         "min_bet_amount": 20,
         "payout": 100
