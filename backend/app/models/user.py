@@ -13,20 +13,20 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(
+        db.String(256), nullable=True
+    )  # Made nullable for Google users
     full_name = db.Column(db.String(100), nullable=False)
+    avatar_url = db.Column(db.String(255), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
     is_admin = db.Column(db.Boolean, default=False)
+    is_google_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     _api_token = db.Column("api_token", db.String(64), unique=True)
     api_token_created_at = db.Column(db.DateTime)
 
     # Relationships
-    profile = db.relationship(
-        "UserProfile",
-        back_populates="user",  # Ensure this is consistent with the `UserProfile` model
-        uselist=False,  # Ensures one-to-one relationship
-        cascade="all, delete-orphan",
-    )
+
     verification_tokens = db.relationship(
         "VerificationToken", backref="user", cascade="all, delete-orphan"
     )
@@ -87,6 +87,18 @@ class User(db.Model):
             "username": self.username,
             "full_name": self.full_name,
             "is_admin": self.is_admin,
+            "is_google_user": self.is_google_user,  # Added to response
             "created_at": self.created_at.isoformat(),
             "has_api_token": bool(self._api_token),
         }
+
+
+class WhitelistedUser(db.Model):
+    __tablename__ = "whitelisted_users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=True)
+    level = db.Column(db.String(100), nullable=True)
+    physical_presence = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

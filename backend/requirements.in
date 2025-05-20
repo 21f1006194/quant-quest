@@ -15,3 +15,6 @@ numpy
 psycopg2-binary
 gunicorn[gevent]
 gevent
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
