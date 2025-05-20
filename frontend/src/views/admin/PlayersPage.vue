@@ -7,16 +7,12 @@
         <div class="page-header">
             <h1>Players</h1>
             <div class="header-buttons">
-                <button class="whitelist-btn" @click="openWhitelistModal">
-                    <i class="bi bi-person-plus"></i> Whitelist User
-                </button>
                 <button class="bulk-bonus-btn" @click="openBulkBonusModal">
                     <i class="bi bi-gift"></i> Bulk Bonus
                 </button>
             </div>
         </div>
 
-        
         <div class="search-sort-container">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -109,11 +105,6 @@
             @close="showBulkBonusModal = false"
             @submitted="handleSubmitted"
         />
-        <WhitelistUserModal
-            :show="showWhitelistModal"
-            @close="showWhitelistModal = false"
-            @submitted="handleWhitelistSubmitted"
-        />
     </div>
 </template>
 
@@ -121,7 +112,6 @@
 import { ref, onMounted, computed } from "vue";
 import api from "@/services/api";
 import BonusPenalityModal from "@/components/modals/BonusPenalityModal.vue";
-import WhitelistUserModal from "@/components/modals/whiteListUSerModal.vue";
 
 const players = ref([]);
 const filteredPlayers = ref([]);
@@ -132,10 +122,10 @@ const showPenaltyModal = ref(false);
 const selectedUserId = ref(null);
 const selectedUsername = ref('');
 const showBulkBonusModal = ref(false);
-const showWhitelistModal = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 5;
 const showSuccessMessage = ref(false);
+
 const sortIcon = computed(() => {
     if (sortDirection.value === 'asc') return 'bi-sort-up';
     if (sortDirection.value === 'desc') return 'bi-sort-down';
@@ -215,22 +205,9 @@ const openBulkBonusModal = () => {
     showBulkBonusModal.value = true;
 };
 
-const openWhitelistModal = () => {
-    showWhitelistModal.value = true;
-};
-
 const handleSubmitted = (data) => {
     console.log('Form submitted:', data);
     fetchPlayers();
-};
-
-const handleWhitelistSubmitted = (data) => {
-    console.log('User whitelisted:', data);
-   // show the success message
-   showSuccessMessage.value = true;
-   setTimeout(() => {
-    showSuccessMessage.value = false;
-   }, 3000);
 };
 
 onMounted(() => {
@@ -262,24 +239,6 @@ onMounted(() => {
 .header-buttons {
     display: flex;
     gap: 1rem;
-}
-
-.whitelist-btn {
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: background-color 0.3s;
-}
-
-.whitelist-btn:hover {
-    background-color: #1976D2;
 }
 
 .bulk-bonus-btn {
