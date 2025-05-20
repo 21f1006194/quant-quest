@@ -24,8 +24,7 @@
         <h2 class="text-center">How to Play</h2>
         <ol class="steps-list">
           <li><strong>Register</strong> on the IITM Paradox Website</li>
-          <li><strong>Receive</strong> your login credentials via email</li>
-          <li><strong>Access</strong> your account and set up your password</li>
+          <li><strong>Login</strong> to Quant Quest using your registered email</li>
           <li><strong>Explore</strong> the available games</li>
           <li><strong>Analyze</strong> each game's mechanics and identify statistical advantages</li>
           <li><strong>Download</strong> the Python template code, and your API token</li>
