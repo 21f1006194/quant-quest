@@ -12,8 +12,55 @@
             </div>
         </div>
 
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-card">
+                <h3>Whitelist Overview</h3>
+                <div class="overview-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Users</span>
+                        <span class="stat-value">{{ whitelistedUsers.length }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Physical Presence</span>
+                        <span class="stat-value">{{ physicalCount }}</span>
+                        <span class="stat-subtext">({{ Math.round((physicalCount / whitelistedUsers.length) * 100) || 0 }}%)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <h3>Level Distribution</h3>
+                <div class="level-distribution">
+                    <div class="level-item">
+                        <span class="level-label">Foundation</span>
+                        <span class="level-value">{{ levelCounts.foundation }}</span>
+                    </div>
+                    <div class="level-item">
+                        <span class="level-label">Diploma</span>
+                        <span class="level-value">{{ levelCounts.diploma }}</span>
+                    </div>
+                    <div class="level-item">
+                        <span class="level-label">Degree</span>
+                        <span class="level-value">{{ levelCounts.degree }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-sort-container">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    placeholder="Search by name or email..."
+                    @input="handleSearch"
+                >
+            </div>
+        </div>
+
         <div class="whitelist-grid">
-            <div v-for="user in whitelistedUsers" :key="user.email" class="whitelist-card">
+            <div v-for="user in paginatedUsers" :key="user.email" class="whitelist-card">
                 <div class="user-info">
                     <h2 class="user-name">{{ user.name }}</h2>
                     <div class="user-details">
@@ -37,6 +84,24 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <div class="pagination">
+            <button 
+                :disabled="currentPage === 1" 
+                @click="currentPage--"
+                class="pagination-btn"
+            >
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+            <button 
+                :disabled="currentPage === totalPages" 
+                @click="currentPage++"
+                class="pagination-btn"
+            >
+                <i class="bi bi-chevron-right"></i>
+            </button>
         </div>
 
         <!-- Add User Modal -->
@@ -103,20 +168,73 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '@/services/api';
 import WhitelistUserModal from '@/components/modals/whiteListUSerModal.vue';
 
 const whitelistedUsers = ref([]);
+const filteredUsers = ref([]);
+const searchQuery = ref('');
 const showWhitelistModal = ref(false);
 const showBulkUploadModal = ref(false);
 const selectedFile = ref(null);
 const isDragging = ref(false);
+const currentPage = ref(1);
+const itemsPerPage = 5;
+
+// Computed properties for summary
+const physicalCount = computed(() => {
+    return whitelistedUsers.value.filter(user => user.physical_presence).length;
+});
+
+const levelCounts = computed(() => {
+    const counts = {
+        foundation: 0,
+        diploma: 0,
+        degree: 0
+    };
+    
+    whitelistedUsers.value.forEach(user => {
+        const level = user.level;
+        if (level.startsWith('B')) {
+            counts.degree++;
+        } else if (level.toLowerCase().includes('diploma')) {
+            counts.diploma++;
+        } else {
+            counts.foundation++;
+        }
+    });
+    
+    return counts;
+});
+
+// Pagination computed properties
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage));
+
+const paginatedUsers = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredUsers.value.slice(start, end);
+});
+
+const handleSearch = () => {
+    currentPage.value = 1; // Reset to first page on search
+    if (!searchQuery.value.trim()) {
+        filteredUsers.value = [...whitelistedUsers.value];
+    } else {
+        const query = searchQuery.value.toLowerCase();
+        filteredUsers.value = whitelistedUsers.value.filter(user => 
+            user.name.toLowerCase().includes(query) ||
+            user.email.toLowerCase().includes(query)
+        );
+    }
+};
 
 const fetchWhitelistedUsers = async () => {
     try {
         const response = await api.get('/admin/whitelist');
         whitelistedUsers.value = response.data.whitelisted_users;
+        filteredUsers.value = [...whitelistedUsers.value];
     } catch (error) {
         console.error('Error fetching whitelisted users:', error);
     }
@@ -459,6 +577,148 @@ onMounted(() => {
     cursor: not-allowed;
 }
 
+.summary-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.overview-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.stat-subtext {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.level-distribution {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.level-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.level-label {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.level-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.25rem;
+}
+
+.search-sort-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    width: 70%;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    color: #666;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.pagination-btn {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn:not(:disabled):hover {
+    background-color: #e9ecef;
+}
+
+.page-info {
+    font-size: 0.9rem;
+    color: #666;
+}
+
 @media (max-width: 768px) {
     .whitelist-card {
         flex-direction: column;
@@ -482,6 +742,34 @@ onMounted(() => {
         width: 100%;
         display: flex;
         justify-content: flex-end;
+    }
+
+    .summary-section {
+        grid-template-columns: 1fr;
+    }
+
+    .search-sort-container {
+        width: 100%;
+    }
+
+    .summary-section {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .level-distribution {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .level-item {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0.25rem 0;
     }
 }
 </style> 
