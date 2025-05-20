@@ -1,5 +1,5 @@
 from app import db
-from app.models import User, Wallet, UserProfile
+from app.models import User, Wallet, WhitelistedUser
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from app.services.game_service import GameService
@@ -10,10 +10,27 @@ from sqlalchemy.orm import joinedload
 
 class UserService:
     @staticmethod
-    def create_user(email, username, password, full_name):
+    def create_user(
+        email,
+        username,
+        password,
+        full_name,
+        avatar_url=None,
+        bio=None,
+        is_google_user=False,
+    ):
         """
-        Create a new user with associated wallet, API token, and profile.
+        Create a new user with associated walle
         This is an atomic operation - either everything succeeds or nothing does.
+
+        Args:
+            email (str): User's email address
+            username (str): User's username
+            password (str): User's password (can be None for Google users)
+            full_name (str): User's full name
+            avatar_url (str): User's avatar URL
+            bio (str): User's bio
+            is_google_user (bool): Whether this is a Google-authenticated user
         """
         try:
             # Check if email or username already exists
@@ -27,12 +44,24 @@ class UserService:
                 email=email,
                 username=username,
                 full_name=full_name,
+                avatar_url=avatar_url,
+                bio=bio,
                 is_admin=False,
+                is_google_user=is_google_user,  # Store whether this is a Google user
             )
-            user.set_password(password)
+
+            # Only set password if not a Google user
+            if not is_google_user:
+                if not password:
+                    raise ValueError("Password is required for non-Google users")
+                user.set_password(password)
+            else:
+                # For Google users, we don't need a password
+                user.password_hash = None
+
             user.generate_api_token()
             db.session.add(user)
-            db.session.flush()  # to get user.id for wallet and profile creation
+            db.session.flush()  # to get user.id for wallet creation
 
             # Create wallet
             initial_capital = 10000.0
@@ -42,10 +71,6 @@ class UserService:
                 current_balance=initial_capital,
             )
             db.session.add(wallet)
-
-            # Create user profile (if you have a UserProfile model)
-            profile = UserProfile(user_id=user.id)
-            db.session.add(profile)
 
             # Commit transaction
             db.session.commit()
@@ -94,3 +119,59 @@ class UserService:
     def get_all_users():
         """Get all users with their wallets preloaded in a single query"""
         return User.query.options(joinedload(User.wallet)).all()
+
+    @staticmethod
+    def whitelist_user(email, name, level, physical_presence):
+        """Whitelist a user for the game"""
+        if WhitelistedUser.query.filter_by(email=email).first():
+            raise ValueError(f"User with this email already exists.")
+        try:
+            whitelisted_user = WhitelistedUser(
+                email=email,
+                name=name,
+                level=level,
+                physical_presence=physical_presence,
+            )
+            db.session.add(whitelisted_user)
+            db.session.commit()
+            return whitelisted_user
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"User with this email already exists: {str(e)}") from e
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @staticmethod
+    def get_whitelisted_users():
+        """Get all whitelisted users"""
+        return WhitelistedUser.query.all()
+
+    @staticmethod
+    def get_whitelisted_user_by_email(email):
+        """Get a whitelisted user by email"""
+        return WhitelistedUser.query.filter_by(email=email).first()
+
+    @staticmethod
+    def delete_whitelisted_user(w_id):
+        """Delete a whitelisted user by id"""
+        whitelisted_user = WhitelistedUser.query.get(w_id)
+        if whitelisted_user:
+            db.session.delete(whitelisted_user)
+            db.session.commit()
+            return True
+        return False
+
+    @staticmethod
+    def bulk_whitelist_users(users):
+        """Bulk whitelist users as a single transaction"""
+        try:
+            db.session.bulk_insert_mappings(WhitelistedUser, users)
+            db.session.commit()
+            return True
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"User with this email already exists: {str(e)}") from e
+        except Exception as e:
+            db.session.rollback()
+            raise e

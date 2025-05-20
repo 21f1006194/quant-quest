@@ -1,10 +1,16 @@
 <template>
+    <div v-if="showSuccessMessage" class="success-message" style="position: fixed; top: 10px; right: 10px; background-color: #4CAF50; color: white; padding: 10px; border-radius: 5px; z-index: 1000;"> 
+        <i class="bi bi-check-circle"></i>
+        User whitelisted successfully
+    </div>
     <div class="players-page">
         <div class="page-header">
             <h1>Players</h1>
-            <button class="bulk-bonus-btn" @click="openBulkBonusModal">
-                <i class="bi bi-gift"></i> Bulk Bonus
-            </button>
+            <div class="header-buttons">
+                <button class="bulk-bonus-btn" @click="openBulkBonusModal">
+                    <i class="bi bi-gift"></i> Bulk Bonus
+                </button>
+            </div>
         </div>
 
         <div class="search-sort-container">
@@ -118,6 +124,7 @@ const selectedUsername = ref('');
 const showBulkBonusModal = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 5;
+const showSuccessMessage = ref(false);
 
 const sortIcon = computed(() => {
     if (sortDirection.value === 'asc') return 'bi-sort-up';
@@ -227,6 +234,11 @@ onMounted(() => {
     font-size: 1.75rem;
     color: #2c3e50;
     margin: 0;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 1rem;
 }
 
 .bulk-bonus-btn {

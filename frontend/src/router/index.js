@@ -4,12 +4,13 @@ import { getGameinfo } from '@/services/gameService';
 import HomeView from "../views/HomeView.vue";
 import AboutView from "../views/AboutView.vue";
 import LoginView from "../views/LoginView.vue";
-import Register from '../views/Register.vue';
+import SecretLogin from '../views/SecretLogin.vue';
 import AdminDash from '../views/admin/AdminDash.vue';
 import PlayerDash from '../views/player/PlayerDash.vue';
 import GameWrapper from '../views/GameWrapper.vue';
 import PlayerGamesView from '../views/player/PlayerGamesView.vue';
 import PlayersPage from '../views/admin/PlayersPage.vue';
+import WhitelistPage from '../views/admin/WhitelistPage.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -23,6 +24,12 @@ const router = createRouter({
             path: "/admin/players",
             name: 'AdminPlayers',
             component: PlayersPage,
+            meta: { requiresAdmin: true }
+        },
+        {
+            path: "/admin/whitelist",
+            name: 'AdminWhitelist',
+            component: WhitelistPage,
             meta: { requiresAdmin: true }
         },
         {
@@ -40,7 +47,7 @@ const router = createRouter({
         { path: "/", component: HomeView },
         { path: "/about", component: AboutView },
         { path: "/login", name: 'Login', component: LoginView },
-        { path: '/register', name: 'Register', component: Register },
+        { path: "/system/access", name: 'SecretLogin', component: SecretLogin },
         {
             path: '/game/:gameName',
             component: GameWrapper,
