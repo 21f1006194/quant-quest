@@ -55,3 +55,71 @@ def is_password_strong(password):
     ):
         return False
     return True
+
+
+# ----------------- CSV Processing Helper -----------------
+import csv
+from io import StringIO
+from typing import List, Dict
+
+
+def process_whitelist_csv(csv_content: str) -> List[Dict]:
+    """
+    Process a CSV file containing whitelist user data.
+
+    Args:
+        csv_content (str): The content of the CSV file as a string
+
+    Returns:
+        List[Dict]: List of dictionaries containing user data
+
+    Expected CSV format:
+    - Required columns: Name, Email, Level
+    - Optional column: Any column containing "physical" for physical presence
+    - First row should be headers
+    """
+    try:
+        # Create a CSV reader from the string content
+        csv_file = StringIO(csv_content)
+        reader = csv.DictReader(csv_file)
+
+        # Validate required columns
+        required_columns = {"Name", "email", "Level"}
+        # strip all the column names
+        reader.fieldnames = [col.strip() for col in reader.fieldnames]
+        if not all(col in reader.fieldnames for col in required_columns):
+            raise ValueError("CSV must contain Name, Email, and Level columns")
+
+        # Find physical presence column if it exists
+        physical_column = next(
+            (col for col in reader.fieldnames if "physical" in col.lower()), None
+        )
+
+        # Process each row
+        users = []
+        for row in reader:
+            user = {
+                "name": row.get("Name", "").strip(),
+                "email": row["email"].strip(),
+                "level": row.get("Level", "").strip(),
+                "physical_presence": False,  # Default value
+            }
+
+            # Set physical presence if column exists
+            if physical_column:
+                physical_value = row[physical_column].strip().lower()
+                user["physical_presence"] = physical_value in ("yes", "true", "1", "y")
+
+            # Validate required fields
+            if not user["email"]:
+                raise ValueError(f"Missing required fields in row: {row}")
+
+            users.append(user)
+
+        return users
+
+    except Exception as e:
+        from traceback import print_exc
+
+        print_exc()
+        raise ValueError(f"Error processing CSV file: {str(e)}")

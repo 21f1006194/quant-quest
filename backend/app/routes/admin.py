@@ -6,6 +6,7 @@ from app.models.gameplay import Game
 from app.services.wallet_service import WalletService
 from app.models.wallet import TransactionCategory
 from app.services.user_service import UserService
+from app.utils.helpers import process_whitelist_csv
 
 
 admin_bp = Blueprint("admin", __name__)
@@ -205,11 +206,42 @@ class WhitelistUserAPI(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
 
-    def delete(self, email):
+    def delete(self, w_id):
         """Delete a whitelisted user by email"""
         try:
-            UserService.delete_whitelisted_user(email)
+            print(f"Deleting user with id: {w_id}")
+            UserService.delete_whitelisted_user(w_id)
             return {"message": "User deleted successfully"}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+
+class BulkWhitelistAPI(Resource):
+    @admin_required
+    def post(self):
+        """Bulk whitelist users from CSV file"""
+        try:
+            if "file" not in request.files:
+                return {"error": "No file provided"}, 400
+
+            file = request.files["file"]
+            if not file.filename.endswith(".csv"):
+                return {"error": "File must be a CSV"}, 400
+
+            # Read and process the CSV file
+            csv_content = file.read().decode("utf-8")
+            users = process_whitelist_csv(csv_content)
+
+            # Bulk whitelist the users
+            UserService.bulk_whitelist_users(users)
+
+            return {
+                "message": f"Successfully whitelisted {len(users)} users",
+                "users": users,
+            }, 201
+
+        except ValueError as e:
+            return {"error": str(e)}, 400
         except Exception as e:
             return {"error": str(e)}, 500
 
@@ -221,3 +253,7 @@ api.add_resource(UserPenaltyAPI, "/admin/penalty/<int:user_id>")
 api.add_resource(AllUsersBonusAPI, "/admin/bonus/to_all")
 api.add_resource(AllUsersAPI, "/admin/all_users")
 api.add_resource(WhitelistUserAPI, "/admin/whitelist")
+api.add_resource(
+    WhitelistUserAPI, "/admin/whitelist/<int:w_id>", endpoint="whitelist_user"
+)
+api.add_resource(BulkWhitelistAPI, "/admin/whitelist/bulk")

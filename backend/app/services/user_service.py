@@ -153,9 +153,9 @@ class UserService:
         return WhitelistedUser.query.filter_by(email=email).first()
 
     @staticmethod
-    def delete_whitelisted_user(email):
-        """Delete a whitelisted user by email"""
-        whitelisted_user = WhitelistedUser.query.filter_by(email=email).first()
+    def delete_whitelisted_user(w_id):
+        """Delete a whitelisted user by id"""
+        whitelisted_user = WhitelistedUser.query.get(w_id)
         if whitelisted_user:
             db.session.delete(whitelisted_user)
             db.session.commit()
