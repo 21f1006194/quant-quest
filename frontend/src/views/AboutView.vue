@@ -33,6 +33,7 @@
 
       <div class="contact-section card">
         <h2 class="section-title">Contact Us</h2>
+        <p class="description">For any queries or assistance, please reach out to the following individuals:</p>
         <div class="contact-grid">
           <div class="contact-card">
             <h3 class="contact-title">Event Head</h3>

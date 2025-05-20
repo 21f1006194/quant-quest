@@ -15,6 +15,7 @@ from app.services.sse_service import SSEService
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import json
+from app.utils.auth import admin_required
 
 common_bp = Blueprint("common", __name__)
 api = Api(common_bp)
@@ -26,6 +27,7 @@ class HealthAPI(Resource):
 
 
 class RegisterAPI(Resource):
+    @admin_required
     def post(self):
         data = request.get_json()
 
