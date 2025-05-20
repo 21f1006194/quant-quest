@@ -5,6 +5,7 @@ export const useAuthStore = defineStore('auth', {
         token: localStorage.getItem('access_token') || null,
         user: JSON.parse(localStorage.getItem('user')) || null,
         api_token: localStorage.getItem('api_token') || null,
+
     }),
 
     actions: {
@@ -18,6 +19,8 @@ export const useAuthStore = defineStore('auth', {
             if (api_token) {
                 localStorage.setItem('api_token', api_token);
             }
+            localStorage.setItem('avatar_url', user.avatar_url);
+            localStorage.setItem('full_name', user.full_name);
         },
 
         logout() {
@@ -27,6 +30,8 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('access_token');
             localStorage.removeItem('user');
             localStorage.removeItem('api_token');
+            localStorage.removeItem('avatar_url');
+            localStorage.removeItem('full_name');
         },
 
         checkAuth() {
@@ -37,6 +42,12 @@ export const useAuthStore = defineStore('auth', {
             this.api_token = new_api_token;
             localStorage.setItem('api_token', new_api_token);
         },
+
+        resetUserInfo(new_user_info) {
+            this.user = new_user_info;
+            localStorage.setItem('user', JSON.stringify(new_user_info));
+        },
+
     },
 
     getters: {
@@ -58,6 +69,18 @@ export const useAuthStore = defineStore('auth', {
             }
             return null;
         },
+        getAvatarUrl() {
+            if (this.user?.avatar_url) {
+                return this.user.avatar_url;
+            }
+            return null;
+        },
+        getFullName() {
+            if (this.user?.full_name) {
+                return this.user.full_name;
+            }
+            return null;
+        }
 
     },
 });

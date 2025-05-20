@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 from datetime import datetime
 from app.services.game_service import GameService
 from app.services.wallet_service import WalletService
+from flask import request
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
@@ -23,6 +24,27 @@ class PlayerProfile(Resource):
             return {"error": "User not found"}, 404
 
         return {"profile": user.to_dict()}, 200
+
+    @jwt_required()
+    def post(self):
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+
+        if not user:
+            return {"error": "User not found"}, 404
+
+        data = request.get_json()
+        full_name = data.get("full_name")
+        bio = data.get("bio")
+
+        if full_name:
+            user.full_name = full_name
+        if bio:
+            user.bio = bio
+
+        db.session.commit()
+
+        return {"message": "Profile updated successfully"}, 200
 
 
 class WalletInfo(Resource):

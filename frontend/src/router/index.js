@@ -11,6 +11,7 @@ import GameWrapper from '../views/GameWrapper.vue';
 import PlayerGamesView from '../views/player/PlayerGamesView.vue';
 import PlayersPage from '../views/admin/PlayersPage.vue';
 import WhitelistPage from '../views/admin/WhitelistPage.vue';
+import PlayerProfile from '../views/player/ProfilePage.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -42,6 +43,12 @@ const router = createRouter({
             path: "/games",
             name: 'PlayerGames',
             component: PlayerGamesView,
+            meta: { requiresUser: true }
+        },
+        {
+            path: "/profile",
+            name: 'PlayerProfile',
+            component: PlayerProfile,
             meta: { requiresUser: true }
         },
         { path: "/", component: HomeView },
