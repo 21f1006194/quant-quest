@@ -42,7 +42,7 @@
             <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
           </li>
           <li class="nav-item ms-auto d-flex align-items-center">
-            <span class="nav-link username ms-3">Welcome, {{ authStore.user?.username }}</span>
+            <span class="nav-link username ms-3">Welcome, Admin</span>
           </li>
         </ul>
 
@@ -65,7 +65,18 @@
               <img :src="CoinIcon" class="coin-icon" alt="coin" />
               <span>{{ walletStore.balance.toFixed(2) }}</span>
             </div>
-            <span class="nav-link username ms-3">Welcome, {{ authStore.user?.username }}</span>
+            <div class="user-welcome ms-3">
+              <template v-if="authStore.getAvatarUrl">
+                <router-link to="/profile">
+                  <img :src="authStore.getAvatarUrl" class="profile-pic" alt="Profile" />
+                </router-link>
+              </template>
+              <template v-else>
+                <span class="welcome-text">
+                  {{ authStore.getFullName || authStore.user?.username }}
+                </span>
+              </template>
+            </div>
           </li>
         </ul>
       </div>
@@ -164,8 +175,23 @@ watchEffect(() => {
   filter: invert(1) sepia(1) saturate(10000%) hue-rotate(80deg);
 }
 
-.username {
-  color: #fff;
+.user-welcome {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.profile-pic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-color);
+}
+
+.welcome-text {
+  color: var(--secondary-color);
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
@@ -191,9 +217,14 @@ watchEffect(() => {
     align-items: center !important;
   }
   
-  .username {
-    margin-top: 8px !important;
+  .user-welcome {
+    margin-top: 8px;
     margin-left: 0 !important;
+  }
+  
+  .profile-pic {
+    width: 28px;
+    height: 28px;
   }
 }
 </style>
