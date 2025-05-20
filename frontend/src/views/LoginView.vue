@@ -1,39 +1,43 @@
 <template>
   <div class="container mt-5" style="max-width: 400px;">
     <h2>Login</h2>
-    <form @submit.prevent="handleLogin">
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input v-model="username" type="text" class="form-control" required />
+    <div class="text-center">
+      <div id="g_id_onload"
+        :data-client_id="googleClientId"
+        data-context="signin"
+        data-ux_mode="popup"
+        data-callback="handleGoogleCredentialResponse"
+        data-auto_prompt="false">
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input v-model="password" type="password" class="form-control" required />
+      <div class="g_id_signin"
+        data-type="standard"
+        data-shape="rectangular"
+        data-theme="outline"
+        data-text="signin_with"
+        data-size="large"
+        data-logo_alignment="left">
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
-      
-      <div class="text-center">
-        <p class="text-muted">- OR -</p>
-        <div id="g_id_onload"
-          :data-client_id="googleClientId"
-          data-context="signin"
-          data-ux_mode="popup"
-          data-callback="handleGoogleCredentialResponse"
-          data-auto_prompt="false">
+      <div class="mt-4 text-start">
+        <h5 class="mb-3">Before You Begin:</h5>
+        <ul class="list-unstyled mb-4">
+          <li class="mb-2">📝 Complete your registration in the Paradox Portal first</li>
+          <li class="mb-2">❓ Having trouble? <router-link to="/about">Get help here</router-link></li>
+          <li class="mb-2">📋 Read our <a href="https://docs.google.com/document/d/1TmIwqLpoozXmOE0buaqYRjzGHYSew6Qa_zGOxNrLuWY/edit?tab=t.0" target="_blank">Rules & Guidelines</a></li>
+        </ul>
+
+        <div class="alert alert-warning bg-transparent border-warning text-warning">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Important:</strong> All participants must follow Paradox and event guidelines
         </div>
 
-        <div class="g_id_signin"
-          data-type="standard"
-          data-shape="rectangular"
-          data-theme="outline"
-          data-text="signin_with"
-          data-size="large"
-          data-logo_alignment="left">
+        <div class="alert alert-info bg-transparent border-info text-info">
+          <i class="bi bi-emoji-smile me-2"></i>
+          <p class="mb-0">Have fun and learn! Remember, the journey is as important as the destination.</p>
         </div>
       </div>
-    </form>
+    </div>
 
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
   </div>
@@ -45,8 +49,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/authStore'
 import api from '@/services/api'
 
-const username = ref('')
-const password = ref('')
 const error = ref('')
 const router = useRouter()
 const authStore = useAuthStore()
@@ -69,30 +71,6 @@ onUnmounted(() => {
   // Clean up the callback function
   delete window.handleGoogleCredentialResponse
 })
-
-const handleLogin = async () => {
-  error.value = ''
-  try {
-    const response = await api.post('/login', {
-      username: username.value,
-      password: password.value
-    })
-
-    // Use auth store to handle login
-    authStore.login(response.data)
-
-    // Redirect to homepage
-    if (authStore.isAdmin) {
-      router.push('/admin')
-    } else if (authStore.isUser) {
-      router.push('/player')
-    } else {
-      error.value = 'Invalid user role'
-    }
-  } catch (err) {
-    error.value = err.response?.data?.error || 'Login failed'
-  }
-}
 
 const handleGoogleCredentialResponse = async (response) => {
   error.value = ''
