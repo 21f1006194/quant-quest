@@ -171,9 +171,53 @@ class AllUsersAPI(Resource):
             return {"error": str(e)}, 500
 
 
+class WhitelistUserAPI(Resource):
+    @admin_required
+    def post(self):
+        """Whitelist a user"""
+        try:
+            data = request.get_json()
+            if not data or "email" not in data:
+                return {"error": "Email is required"}, 400
+
+            email = data["email"]
+            name = data.get("name")
+            level = data.get("level")
+            physical_presence = data.get("physical_presence", False)
+
+            whitelisted_user = UserService.whitelist_user(
+                email, name, level, physical_presence
+            )
+            return {
+                "message": "User whitelisted successfully",
+                "user": whitelisted_user.to_dict(),
+            }, 201
+        except ValueError as e:
+            return {"error": str(e)}, 400
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+    def get(self):
+        """Get all whitelisted users"""
+        try:
+            whitelisted_users = UserService.get_whitelisted_users()
+            return {"whitelisted_users": [u.to_dict() for u in whitelisted_users]}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+    def delete(self, email):
+        """Delete a whitelisted user by email"""
+        try:
+            UserService.delete_whitelisted_user(email)
+            return {"message": "User deleted successfully"}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+
 api.add_resource(AdminAPI, "/admin")
 api.add_resource(GameListAPI, "/admin/games")
 api.add_resource(UserBonusAPI, "/admin/bonus/<int:user_id>")
 api.add_resource(UserPenaltyAPI, "/admin/penalty/<int:user_id>")
 api.add_resource(AllUsersBonusAPI, "/admin/bonus/to_all")
 api.add_resource(AllUsersAPI, "/admin/all_users")
+api.add_resource(WhitelistUserAPI, "/admin/whitelist")

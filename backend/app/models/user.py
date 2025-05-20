@@ -102,3 +102,12 @@ class WhitelistedUser(db.Model):
     level = db.Column(db.String(100), nullable=True)
     physical_presence = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "name": self.name,
+            "level": self.level,
+            "physical_presence": self.physical_presence,
+        }
