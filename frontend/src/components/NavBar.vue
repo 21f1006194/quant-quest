@@ -36,6 +36,9 @@
             <router-link class="nav-link" to="/admin/players">Players</router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/admin/whitelist">Whitelist</router-link>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#" @click.prevent="logout">Logout</a>
           </li>
           <li class="nav-item ms-auto d-flex align-items-center">
