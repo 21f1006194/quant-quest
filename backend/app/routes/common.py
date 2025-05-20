@@ -19,8 +19,6 @@ import json
 common_bp = Blueprint("common", __name__)
 api = Api(common_bp)
 
-whitelisted_emails = ["jishnu.jjp97@gmail.com", "21f1006194@ds.study.iitm.ac.in"]
-
 
 class HealthAPI(Resource):
     def get(self):
@@ -145,8 +143,11 @@ class GoogleAuthAPI(Resource):
             bio = idinfo.get("bio", None)
 
             # Check if email is whitelisted
-            if email not in whitelisted_emails:
-                return {"error": "Unauthorized email"}, 403
+            whitelisted_user = UserService.get_whitelisted_user_by_email(email)
+            if not whitelisted_user:
+                return {
+                    "error": "Unauthorized email, register for the event or contact the admin"
+                }, 403
 
             # Get or create user
             user = UserService.get_user_by_email(email)

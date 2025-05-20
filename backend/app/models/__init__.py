@@ -1,4 +1,4 @@
-from .user import User
+from .user import User, WhitelistedUser
 from .verification import VerificationToken
 from .wallet import Wallet, Transaction
 from .gameplay import Game, GameSession, Bet
@@ -11,4 +11,5 @@ __all__ = [
     "Game",
     "GameSession",
     "Bet",
+    "WhitelistedUser",
 ]

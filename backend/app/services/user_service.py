@@ -1,5 +1,5 @@
 from app import db
-from app.models import User, Wallet
+from app.models import User, Wallet, WhitelistedUser
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from app.services.game_service import GameService
@@ -119,3 +119,59 @@ class UserService:
     def get_all_users():
         """Get all users with their wallets preloaded in a single query"""
         return User.query.options(joinedload(User.wallet)).all()
+
+    @staticmethod
+    def whitelist_user(email, name, level, physical_presence):
+        """Whitelist a user for the game"""
+        if WhitelistedUser.query.filter_by(email=email).first():
+            raise ValueError(f"User with this email already exists.")
+        try:
+            whitelisted_user = WhitelistedUser(
+                email=email,
+                name=name,
+                level=level,
+                physical_presence=physical_presence,
+            )
+            db.session.add(whitelisted_user)
+            db.session.commit()
+            return whitelisted_user
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"User with this email already exists: {str(e)}") from e
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @staticmethod
+    def get_whitelisted_users():
+        """Get all whitelisted users"""
+        return WhitelistedUser.query.all()
+
+    @staticmethod
+    def get_whitelisted_user_by_email(email):
+        """Get a whitelisted user by email"""
+        return WhitelistedUser.query.filter_by(email=email).first()
+
+    @staticmethod
+    def delete_whitelisted_user(email):
+        """Delete a whitelisted user by email"""
+        whitelisted_user = WhitelistedUser.query.filter_by(email=email).first()
+        if whitelisted_user:
+            db.session.delete(whitelisted_user)
+            db.session.commit()
+            return True
+        return False
+
+    @staticmethod
+    def bulk_whitelist_users(users):
+        """Bulk whitelist users as a single transaction"""
+        try:
+            db.session.bulk_insert_mappings(WhitelistedUser, users)
+            db.session.commit()
+            return True
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"User with this email already exists: {str(e)}") from e
+        except Exception as e:
+            db.session.rollback()
+            raise e
