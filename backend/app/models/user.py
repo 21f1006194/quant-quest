@@ -86,6 +86,8 @@ class User(db.Model):
             "email": self.email,
             "username": self.username,
             "full_name": self.full_name,
+            "avatar_url": self.avatar_url,
+            "bio": self.bio,
             "is_admin": self.is_admin,
             "is_google_user": self.is_google_user,  # Added to response
             "created_at": self.created_at.isoformat(),
