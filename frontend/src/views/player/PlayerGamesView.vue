@@ -1,45 +1,19 @@
 <template>
-    <div>
+    <div class="games-container">
         <h1>Games</h1>
-    <div class="games-table games-table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Game Name</th>
-                    <th>Plays Remaining</th>
-                    <th>Bets/Play</th>
-                    <th>Difficulty</th>
-                    <th>Tags</th>
-                    <th>PnL</th>
-                    <th>Play Game</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="game in games" :key="game.id">
-                    <td>{{ game.name.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}</td>
-                    <td>{{ game.max_sessions_per_user - walletStore.gameSessionsCount[game.id] }} / {{ game.max_sessions_per_user }}</td>
-                    <td>{{ game.max_bets_per_session }}</td>
-                    <td>{{ game.difficulty }}</td>
-                    <td class="tags-cell">
-                        <div class="tags-container">
-                            <span v-for="tag in game.tags.split(',').map(tag => tag.trim())" :key="tag">
-                                <span class="tag-pill">{{ tag }}</span>
-                            </span>
-                        </div>
-                    </td>
-                    <td>
-                        <span v-if="walletStore.gamePnls[game.id] > 0" class="positive-pnl">{{ walletStore.gamePnls[game.id] }}</span>
-                        <span v-else class="negative-pnl">{{ walletStore.gamePnls[game.id] }}</span>
-                    </td>
-                    <td>
-                        <router-link :to="`/game/${game.name}`">
-                            <i class="bi bi-play-btn-fill" style="font-size: 2em;"></i>
-                        </router-link>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <div class="games-grid">
+            <GameCard
+                v-for="game in games"
+                :key="game.id"
+                :game-name="game.name"
+                :max-sessions="game.max_sessions_per_user"
+                :sessions-used="walletStore.gameSessionsCount[game.id]"
+                :max-bets="game.max_bets_per_session"
+                :difficulty="game.difficulty"
+                :tags="game.tags"
+                :pnl="walletStore.gamePnls[game.id]"
+            />
+        </div>
     </div>
 </template>
 
@@ -47,6 +21,7 @@
 import { ref, onMounted } from 'vue';
 import api from '@/services/api';
 import { useWalletStore } from '@/store/walletStore';
+import GameCard from '@/components/game/GameCard.vue';
 
 const games = ref([]);
 const loading = ref(false);
@@ -74,83 +49,30 @@ const fetchGames = async () => {
 onMounted(() => {
     fetchGames();
 });
-
-
 </script>
 
 <style scoped>
+.games-container {
+    padding: 2rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 h1 {
     text-align: center;
-    margin-top: 20px;
+    margin-bottom: 2rem;
+    color: #ffffff;
+    font-size: 2rem;
+    font-weight: 600;
 }
-.games-table-container {
+
+.games-grid {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
     align-items: center;
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+    width: 90%;
 }
-
-.games-table th, .games-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-    vertical-align: middle;
-}
-
-
-.games-table th {
-    background-color: #343434;
-}
-
-.games-table tr:nth-child(even) {
-    background-color: #343434;
-}
-
-.games-table tr:hover {
-    background-color: #585858;
-}   
-
-.tags-cell {
-    min-width: 150px;
-    max-width: 200px;
-}
-
-.tags-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100%;
-}
-
-.tag-pill {
-    background-color: #343434;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 5px;
-    display: inline-block;
-    white-space: nowrap;
-}
-
-.positive-pnl {
-    color: #00ff00;
-}
-
-.negative-pnl {
-    color: #ff0000;
-}
-
-td {
-    height: 100%;
-    display: table-cell;
-    vertical-align: middle;
-}
-
-td:has(.tag-pill) {
-    min-width: 200px;
-}
-
 </style>
