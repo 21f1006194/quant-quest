@@ -152,9 +152,41 @@ const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Here you would typically upload the file to your server
-    // For now, we'll just show a notification
-    notification.show('Profile picture upload will be implemented soon', 'yellow');
+    // Check file size (1MB)
+    if (file.size > 1024 * 1024) {
+        notification.show('File size must be less than 1MB', 'red');
+        return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+        notification.show('Please select an image file', 'red');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await api.post('/profile-picture', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        if (response.status === 200) {
+            const { avatar_url } = response.data;
+            avatarUrl.value = avatar_url;
+            // Update auth store with new avatar URL
+            authStore.resetUserInfo({
+                ...authStore.user,
+                avatar_url: avatar_url
+            });
+            notification.show('Profile picture updated successfully', 'green');
+        }
+    } catch (error) {
+        notification.show('Failed to upload profile picture', 'red');
+    }
 };
 
 // Copy API key to clipboard

@@ -29,6 +29,8 @@ class ConfigValidator:
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "GOOGLE_REDIRECT_URI",
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "GCP_BUCKET_NAME",
     ]
 
     @classmethod
@@ -76,7 +78,9 @@ class Config:
     # CORS Configuration
     CORS_ORIGINS = os.environ["CORS_ORIGINS"].split(",")
 
-    # Google OAuth Configuration
+    # Google credentials
     GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
     GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
     GOOGLE_REDIRECT_URI = os.environ["GOOGLE_REDIRECT_URI"]
+    GOOGLE_APPLICATION_CREDENTIALS = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+    GCP_BUCKET_NAME = os.environ["GCP_BUCKET_NAME"]

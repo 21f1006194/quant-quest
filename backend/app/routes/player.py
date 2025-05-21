@@ -9,6 +9,7 @@ from datetime import datetime
 from app.services.game_service import GameService
 from app.services.wallet_service import WalletService
 from flask import request
+from app.utils.image_upload import upload_profile_picture
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
@@ -160,9 +161,38 @@ class PlayerTransactions(Resource):
         }, 200
 
 
+class ProfilePicture(Resource):
+    @jwt_required()
+    def post(self):
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+
+        if not user:
+            return {"error": "User not found"}, 404
+
+        if "image" not in request.files:
+            return {"error": "No image file provided"}, 400
+
+        image_file = request.files["image"]
+        if not image_file.filename:
+            return {"error": "No selected file"}, 400
+
+        # Upload image and get URL
+        image_url, error = upload_profile_picture(image_file, user_id)
+        if error:
+            return {"error": error}, 400
+
+        # Update user's avatar URL
+        user.avatar_url = image_url
+        db.session.commit()
+
+        return {"avatar_url": image_url}, 200
+
+
 api.add_resource(APIToken, "/api-token")
 api.add_resource(PlayerProfile, "/profile")
 api.add_resource(WalletInfo, "/wallet")
 api.add_resource(RecentBets, "/recent-bets")
 api.add_resource(PlayerGames, "/games")
 api.add_resource(PlayerTransactions, "/transactions")
+api.add_resource(ProfilePicture, "/profile-picture")
