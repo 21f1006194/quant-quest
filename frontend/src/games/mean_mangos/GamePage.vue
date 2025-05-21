@@ -8,6 +8,7 @@
                 <p>
                   Welcome to <strong>Mean Mangos</strong>! In a bustling market town, mango prices have been swinging wildly for weeks. You've tracked the price for 50 days—now it's your chance to make a move. Will you buy or sell? Ten days later, you'll discover if your instincts paid off!
                 </p>
+                <p><em>Some say mango prices have a way of finding their balance.</em> <br />Will you spot the pattern or get caught in the swing?</p>
             </div>
             <div class="config">
                 <h3>Game Configuration</h3>
