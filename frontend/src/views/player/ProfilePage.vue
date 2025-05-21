@@ -10,7 +10,7 @@
                 <div class="profile-content-wrapper">
                     <div class="profile-picture-container">
                         <div class="profile-picture-wrapper">
-                            <img :src="avatarUrl || 'https://avatar.iran.liara.run/public'" alt="Profile Picture" class="profile-picture" />
+                            <img :src="avatarUrl || 'https://storage.googleapis.com/quantquest-assets/profile_pictures/default-avatar.jpg'" alt="Profile Picture" class="profile-picture" />
                             <div class="profile-picture-overlay" @click="triggerFileInput">
                                 <i class="bi bi-camera"></i>
                                 <span>Change Photo</span>
