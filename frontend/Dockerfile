@@ -14,7 +14,9 @@ COPY . .
 
 # Create .env file with the API base URL from build arg
 ARG VITE_API_BASE_URL
+ARG VITE_GOOGLE_CLIENT_ID
 RUN echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env
+RUN echo "VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}" >> .env
 
 # Build the application
 RUN npm run build

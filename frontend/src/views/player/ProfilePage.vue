@@ -7,22 +7,29 @@
         <div class="profile-content">
             <!-- Profile Picture Section -->
             <div class="profile-section card profile-picture-section">
-                <div class="profile-picture-container">
-                    <div class="profile-picture-wrapper">
-                        <img :src="avatarUrl || 'https://avatar.iran.liara.run/public'" alt="Profile Picture" class="profile-picture" />
-                        <div class="profile-picture-overlay" @click="triggerFileInput">
-                            <i class="bi bi-camera"></i>
-                            <span>Change Photo</span>
+                <div class="profile-content-wrapper">
+                    <div class="profile-picture-container">
+                        <div class="profile-picture-wrapper">
+                            <img :src="avatarUrl || 'https://storage.googleapis.com/quantquest-assets/profile_pictures/default-avatar.jpg'" alt="Profile Picture" class="profile-picture" />
+                            <div class="profile-picture-overlay" @click="triggerFileInput">
+                                <i class="bi bi-camera"></i>
+                                <span>Change Photo</span>
+                            </div>
                         </div>
+                        <input 
+                            type="file" 
+                            ref="fileInput" 
+                            @change="handleFileChange" 
+                            accept="image/*" 
+                            class="file-input" 
+                            style="display: none"
+                        />
                     </div>
-                    <input 
-                        type="file" 
-                        ref="fileInput" 
-                        @change="handleFileChange" 
-                        accept="image/*" 
-                        class="file-input" 
-                        style="display: none"
-                    />
+                    <div class="profile-info">
+                        <h3>{{ displayName }}</h3>
+                        <p class="email"><i class="bi bi-envelope"></i> {{ email }}</p>
+                        <p class="username"><i class="bi bi-person"></i> {{ username }}</p>
+                    </div>
                 </div>
             </div>
 
@@ -59,8 +66,11 @@
                     <div class="api-key-item">
                         <label>API Key</label>
                         <div class="api-key-display">
-                            <input type="password" v-model="apiKey" readonly />
+                            <input :type="showApiKey ? 'text' : 'password'" v-model="apiKey" readonly />
                             <div class="api-key-actions">
+                                <button class="icon-btn" @click="toggleApiKeyVisibility" title="Toggle API Key Visibility">
+                                    <i :class="showApiKey ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                                </button>
                                 <button class="icon-btn" @click="copyApiKey" title="Copy API Key">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
@@ -80,17 +90,25 @@
 import { ref, onMounted } from 'vue';
 import api from '@/services/api';
 import { useNotificationStore } from '@/store/notificationStore';
+import { useAuthStore } from '@/store/authStore';
 
 const notification = useNotificationStore();
+const authStore = useAuthStore();
 const fileInput = ref(null);
+const showApiKey = ref(false);
 
 // Profile data
-const apiKey = ref('');
 const displayName = ref('');
 const email = ref('');
 const username = ref('');
 const bio = ref('');
 const avatarUrl = ref('');
+const apiKey = ref('');
+
+// Toggle API key visibility
+const toggleApiKeyVisibility = () => {
+    showApiKey.value = !showApiKey.value;
+};
 
 // Fetch profile data
 const fetchProfile = async () => {
@@ -98,11 +116,11 @@ const fetchProfile = async () => {
         const response = await api.get('/profile');
         if (response.status === 200) {
             const { profile } = response.data;
-            displayName.value = profile.display_name || '';
+            displayName.value = profile.full_name || '';
             email.value = profile.email || '';
             username.value = profile.username || '';
             bio.value = profile.bio || '';
-            apiKey.value = profile.api_key || '';
+            apiKey.value = authStore.getApiToken || '';
             avatarUrl.value = profile.avatar_url || '';
         }
     } catch (error) {
@@ -114,7 +132,7 @@ const fetchProfile = async () => {
 const saveProfile = async () => {
     try {
         const response = await api.post('/profile', {
-            display_name: displayName.value,
+            full_name: displayName.value,
             bio: bio.value
         });
         if (response.status === 200) {
@@ -134,9 +152,41 @@ const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Here you would typically upload the file to your server
-    // For now, we'll just show a notification
-    notification.show('Profile picture upload will be implemented soon', 'yellow');
+    // Check file size (1MB)
+    if (file.size > 1024 * 1024) {
+        notification.show('File size must be less than 1MB', 'red');
+        return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+        notification.show('Please select an image file', 'red');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await api.post('/profile-picture', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        if (response.status === 200) {
+            const { avatar_url } = response.data;
+            avatarUrl.value = avatar_url;
+            // Update auth store with new avatar URL
+            authStore.resetUserInfo({
+                ...authStore.user,
+                avatar_url: avatar_url
+            });
+            notification.show('Profile picture updated successfully', 'green');
+        }
+    } catch (error) {
+        notification.show('Failed to upload profile picture', 'red');
+    }
 };
 
 // Copy API key to clipboard
@@ -151,9 +201,11 @@ const regenerateApiKey = async () => {
         return;
     }
     try {
-        const response = await api.post('/profile/regenerate-key');
+        const response = await api.post('/api-token');
         if (response.status === 200) {
-            apiKey.value = response.data.api_key;
+            const newApiToken = response.data.api_token;
+            authStore.resetApiToken(newApiToken);
+            apiKey.value = newApiToken;
             notification.show('API key regenerated successfully', 'green');
         }
     } catch (error) {
@@ -204,13 +256,18 @@ onMounted(() => {
 
 /* Profile Picture Styles */
 .profile-picture-section {
-    display: flex;
-    justify-content: center;
     padding: var(--spacing-xl);
+}
+
+.profile-content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
 }
 
 .profile-picture-container {
     position: relative;
+    flex-shrink: 0;
 }
 
 .profile-picture-wrapper {
@@ -376,6 +433,20 @@ onMounted(() => {
         grid-template-columns: 1fr;
     }
 
+    .profile-content-wrapper {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+
+    .profile-info {
+        text-align: center;
+    }
+
+    .profile-info p {
+        justify-content: center;
+    }
+
     .profile-picture-wrapper {
         width: 150px;
         height: 150px;
@@ -394,5 +465,30 @@ onMounted(() => {
         width: 100%;
         justify-content: center;
     }
+}
+
+.profile-info {
+    text-align: left;
+    flex-grow: 1;
+}
+
+.profile-info h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    font-size: 1.8rem;
+}
+
+.profile-info p {
+    color: var(--text-light);
+    margin: var(--spacing-sm) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.1rem;
+}
+
+.profile-info i {
+    color: var(--secondary-color);
+    font-size: 1.2rem;
 }
 </style>

@@ -1,5 +1,34 @@
 <template>
   <div class="player-dashboard-layout">
+        <div class="dashboard-column info-column">
+      <div class="wallet-summary">
+        <h2>Wallet Summary</h2>
+        <div class="wallet-card">
+          <span><img :src="CoinIcon" class="coin-icon" alt="coin" /> {{ balance }}</span>
+          <div class="wallet-timestamp">{{ timestamp }}</div>
+        </div>
+      </div>
+      <div class="transactions-section">
+        <h2>Bonus & Penalties</h2>
+        <div class="transactions-grid">
+          <div v-for="transaction in transactions" 
+               :key="transaction.id" 
+               :class="['transaction-card', transaction.type]">
+            <div class="transaction-amount">
+              {{ transaction.type === 'credit' ? '+' : '-' }}{{ transaction.amount }}
+            </div>
+            <div class="transaction-details">
+              <div class="transaction-category">
+                <i v-if="transaction.category === 'penalty'" class="bi bi-exclamation-triangle-fill"></i>
+                <i v-else-if="transaction.category === 'bonus'" class="bi bi-gift"></i>
+                <span v-else>{{ transaction.category }}</span>
+              </div>
+              <div class="transaction-description">{{ transaction.description }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="dashboard-column games-column">
       <div class="games-section">
         <h2>Games</h2>
@@ -29,35 +58,6 @@
             <router-link :to="`/game/${game.name}`" class="play-button">
               <i class="bi bi-play-btn-fill"></i> Play
             </router-link>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="dashboard-column info-column">
-      <div class="wallet-summary">
-        <h2>Wallet Summary</h2>
-        <div class="wallet-card">
-          <span><img :src="CoinIcon" class="coin-icon" alt="coin" /> {{ balance }}</span>
-          <div class="wallet-timestamp">{{ timestamp }}</div>
-        </div>
-      </div>
-      <div class="transactions-section">
-        <h2>Bonus & Penalties</h2>
-        <div class="transactions-grid">
-          <div v-for="transaction in transactions" 
-               :key="transaction.id" 
-               :class="['transaction-card', transaction.type]">
-            <div class="transaction-amount">
-              {{ transaction.type === 'credit' ? '+' : '-' }}{{ transaction.amount }}
-            </div>
-            <div class="transaction-details">
-              <div class="transaction-category">
-                <i v-if="transaction.category === 'penalty'" class="bi bi-exclamation-triangle-fill"></i>
-                <i v-else-if="transaction.category === 'bonus'" class="bi bi-gift"></i>
-                <span v-else>{{ transaction.category }}</span>
-              </div>
-              <div class="transaction-description">{{ transaction.description }}</div>
-            </div>
           </div>
         </div>
       </div>
