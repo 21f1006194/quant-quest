@@ -20,7 +20,7 @@ class MeanMangos:
         for day in range(days_total + 1):
             S_prev = prices[-1]
             dS = theta * (mu - S_prev) * dt + sigma * np.random.normal()
-            prices.append(float(S_prev + dS))
+            prices.append(round(float(S_prev + dS), 4))
             if day < decision_day:
                 show_price += f"{prices[-1]};"
             elif day == decision_day:

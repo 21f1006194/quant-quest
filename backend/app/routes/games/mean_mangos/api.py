@@ -75,7 +75,7 @@ class GamePlayAPI(Resource):
             BetData(
                 amount=cost,
                 choice=choice,
-                payout=value,
+                payout=cost + pnl,
             ),
         )
         return {
@@ -85,6 +85,7 @@ class GamePlayAPI(Resource):
                 "future_price": session.session_data["future_price"],
                 "exit_price": session.session_data["exit_price"],
             },
+            "side": choice,
             "cost": cost,
             "value": value,
             "pnl": pnl,

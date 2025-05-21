@@ -55,8 +55,6 @@ class GamePlay:
 
     def trade(self, qty, choice):
 
-        if len(choice) != 2:
-            raise Exception("Choice must be a two character string")
         payload = {
             "session_id": self.session_id,
             "qty": qty,
@@ -82,6 +80,6 @@ class GamePlay:
 if __name__ == "__main__":
     game = GamePlay()
     # past_price = game.play()
-    # print(price_data)
+    # print(past_price)
     # Analyse the past price data and make a decision to buy() or sell()
     # Do proper money management and decide the qty to buy or sell
