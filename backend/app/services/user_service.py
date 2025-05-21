@@ -6,6 +6,7 @@ from app.services.game_service import GameService
 from app.services.wallet_service import WalletService
 from app.models.wallet import TransactionCategory
 from sqlalchemy.orm import joinedload
+from app.utils.image_upload import upload_profile_picture_from_url
 
 
 class UserService:
@@ -63,6 +64,13 @@ class UserService:
             db.session.add(user)
             db.session.flush()  # to get user.id for wallet creation
 
+            if avatar_url:
+                new_avatar, error = upload_profile_picture_from_url(avatar_url, user.id)
+                if not error:
+                    user.avatar_url = new_avatar
+                else:
+                    print(f"Error uploading profile picture: {avatar_url}")
+
             # Create wallet
             initial_capital = 10000.0
             wallet = Wallet(
@@ -97,6 +105,9 @@ class UserService:
                 f"User with this email or username already exists: {str(e)}"
             ) from e
         except Exception as e:
+            import traceback
+
+            traceback.print_exc()
             db.session.rollback()
             raise RuntimeError(f"Error creating user: {str(e)}") from e
 
