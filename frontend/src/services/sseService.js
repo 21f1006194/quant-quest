@@ -8,11 +8,14 @@ class SSEService {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.eventHandlers = new Map();
+        this.subscriberCount = 0;
     }
 
     connect() {
+        // Only create a new connection if we don't have one
         if (this.connection) {
-            this.connection.close();
+            this.subscriberCount++;
+            return;
         }
 
         const authStore = useAuthStore();
@@ -28,6 +31,7 @@ class SSEService {
 
         try {
             this.connection = new EventSource(url);
+            this.subscriberCount = 1;
             console.log('EventSource created successfully');
 
             this.connection.onopen = () => {
@@ -78,6 +82,7 @@ class SSEService {
             this.eventHandlers.set(eventType, []);
         }
         this.eventHandlers.get(eventType).push(handler);
+        this.connect(); // Connect if not already connected
     }
 
     unsubscribe(eventType, handler) {
@@ -87,6 +92,16 @@ class SSEService {
             if (index > -1) {
                 handlers.splice(index, 1);
             }
+            // If no more handlers for this event type, remove the event type
+            if (handlers.length === 0) {
+                this.eventHandlers.delete(eventType);
+            }
+        }
+
+        // Decrement subscriber count and cleanup if no more subscribers
+        this.subscriberCount--;
+        if (this.subscriberCount <= 0) {
+            this.cleanup();
         }
     }
 
@@ -96,6 +111,8 @@ class SSEService {
             this.connection = null;
         }
         this.eventHandlers.clear();
+        this.subscriberCount = 0;
+        this.isConnected = false;
     }
 }
 
