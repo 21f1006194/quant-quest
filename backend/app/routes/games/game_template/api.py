@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
-from app.utils.auth import api_token_required, get_api_user
-from app.utils.rate_limit import session_rate_limit, bets_rate_limit
+from app.utils.auth import get_api_user
+from app.utils.rate_limit import session_rate_limit, bets_rate_limit, play_rate_limited
 
 ## To have custom functions for info, control;
 ## We can inherit from BaseGameAPI and override the methods
@@ -16,12 +16,12 @@ from app.utils.rate_limit import session_rate_limit, bets_rate_limit
 
 
 class GamePlayAPI(Resource):
-    @api_token_required
+    @play_rate_limited
     def get(self):
         user = get_api_user()
         return {"trials_left": 3, "money_made": 100, "user_id": user.id}
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("game_template")
     def post(self):
         user = get_api_user()
@@ -30,7 +30,7 @@ class GamePlayAPI(Resource):
         # Create new session logic here and a bet in it.
         return {"result": "played new trial"}
 
-    @api_token_required
+    @play_rate_limited
     @bets_rate_limit("game_template")
     def put(self):
         user = get_api_user()

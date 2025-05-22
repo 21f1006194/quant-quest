@@ -2,8 +2,8 @@
 
 from flask_restful import Resource
 from flask import request
-from app.utils.auth import api_token_required, get_api_user
-from app.utils.rate_limit import session_rate_limit
+from app.utils.auth import get_api_user
+from app.utils.rate_limit import session_rate_limit, play_rate_limited
 from .engine import CoinToss
 from app.services import BetService, BetData, GameSessionService, GameService
 
@@ -12,7 +12,7 @@ class GamePlayAPI(Resource):
     def __init__(self):
         self.engine = CoinToss()
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("coin_toss")
     def get(self):
         return {
@@ -22,7 +22,7 @@ class GamePlayAPI(Resource):
             "payout": self.engine.payout,
         }
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("coin_toss")
     def post(self):
         user = get_api_user()
@@ -46,7 +46,7 @@ class GamePlayAPI(Resource):
             "message": "Toss completed, now place your bet.",
         }, 201
 
-    @api_token_required
+    @play_rate_limited
     def patch(self):
         user = get_api_user()
         data = request.get_json()

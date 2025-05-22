@@ -36,8 +36,6 @@ class BetService:
     def validate_bet_amount(user_id, amount):
         """Validate if user has enough balance for the bet"""
         current_balance = WalletService.get_balance(user_id)
-        print(f"Current balance: {current_balance}, Amount: {amount}")
-        print(f"User ID: {user_id}")
         if current_balance < amount:
             raise ValueError(
                 f"Insufficient balance. Required: {amount}, Available: {current_balance}"

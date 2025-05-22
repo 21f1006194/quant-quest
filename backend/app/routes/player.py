@@ -141,7 +141,6 @@ class PlayerGames(Resource):
     @jwt_required()
     def get(self):
         user_id = int(get_jwt_identity())
-        print(user_id)
         games = GameService.get_active_games()
         games_played_data = GameService.get_games_played_data_by_user(user_id)
         resp = []

@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
-from app.utils.auth import api_token_required, get_api_user
-from app.utils.rate_limit import session_rate_limit, bets_rate_limit
+from app.utils.auth import get_api_user
+from app.utils.rate_limit import session_rate_limit, play_rate_limited
 from .engine import MeanMangos
 from app.services import BetService, BetData, GameSessionService, GameService
 
@@ -10,7 +10,7 @@ class GamePlayAPI(Resource):
     def __init__(self):
         self.engine = MeanMangos()
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("mean_mangos")
     def get(self):
         user = get_api_user()
@@ -19,7 +19,7 @@ class GamePlayAPI(Resource):
             "game_name": self.engine.game.name,
         }
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("mean_mangos")
     def post(self):
         user = get_api_user()
@@ -48,7 +48,7 @@ class GamePlayAPI(Resource):
             "entry_price": entry_price,
         }, 201
 
-    @api_token_required
+    @play_rate_limited
     def patch(self):
         user = get_api_user()
         data = request.get_json()
