@@ -7,38 +7,33 @@
                 :key="game.id"
                 :game-name="game.name"
                 :max-sessions="game.max_sessions_per_user"
-                :sessions-used="walletStore.gameSessionsCount[game.id]"
+                :sessions-used="gameStore.gameSessionsCount.get(game.id)"
                 :max-bets="game.max_bets_per_session"
                 :difficulty="game.difficulty"
                 :tags="game.tags"
-                :pnl="walletStore.gamePnls[game.id]"
+                :pnl="gameStore.gamePnls.get(game.id)"
             />
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '@/services/api';
-import { useWalletStore } from '@/store/walletStore';
+import { useGameStore } from '@/store/gameStore';
 import GameCard from '@/components/game/GameCard.vue';
 
 const games = ref([]);
 const loading = ref(false);
 const error = ref(null);
-const walletStore = useWalletStore();
+const gameStore = useGameStore();
 
 const fetchGames = async () => {
     loading.value = true;
     const response = await api.get('/games');
     if (response.status === 200) {
         games.value = response.data.games;
-        // Initialize game PNLs in wallet store
-        games.value.forEach(game => {
-            walletStore.gamePnls[game.id] = parseFloat(game.pnl.toFixed(2));
-            walletStore.gameSessionsCount[game.id] = game.session_count;
-            walletStore.gameBetsCount[game.id] = game.bet_count;
-        });
+        gameStore.initializeGames(response.data.games);
     } else {
         games.value = [];
         error.value = response.data.message;
@@ -48,6 +43,7 @@ const fetchGames = async () => {
 
 onMounted(() => {
     fetchGames();
+    gameStore.initializeSSE();
 });
 </script>
 

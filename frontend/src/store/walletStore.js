@@ -1,65 +1,61 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 import sseService from '@/services/sseService';
 import { useNotificationStore } from '@/store/notificationStore';
 
-export const useWalletStore = defineStore('wallet', {
-    state: () => ({
-        balance: 0,
-        timestamp: null,
-        gamePnls: {},
-        gameSessionsCount: {},
-        gameBetsCount: {},
-        transactions: [],
-    }),
+export const useWalletStore = defineStore('wallet', () => {
+    const balance = ref(0);
+    const timestamp = ref(null);
+    const transactions = ref([]);
 
-    actions: {
-        initializeSSE() {
-            // Subscribe to wallet and bet updates
-            sseService.subscribe('wallet_update', this.handleWalletUpdate);
-            sseService.subscribe('bet_update', this.betUpdate);
-            sseService.subscribe('transaction_update', this.transactionUpdate);
-            sseService.connect();
-        },
-
-        transactionUpdate(data) {
-            this.transactions.push(data.transaction);
-            this.balance = data.balance;
-            this.timestamp = data.timestamp;
-            const notification = useNotificationStore();
-            const isBonus = data.transaction.category === 'bonus';
-            const color = isBonus ? 'green' : 'red';
-            const sign = isBonus ? '+' : '-';
-            const message = `${sign}${Math.abs(data.transaction.amount)} — ${data.transaction.description}`;
-            console.log(message, color);
-            notification.show(message, color);
-        },
-
-        betUpdate(data) {
-            this.balance = data.balance;
-            this.timestamp = data.timestamp;
-            this.gamePnls[data.game_id] = parseFloat(data.pnl.toFixed(2));
-            this.gameSessionsCount[data.game_id] = data.session_count;
-            this.gameBetsCount[data.game_id] = data.bet_count;
-        },
-
-        handleWalletUpdate(data) {
-            this.balance = data.balance;
-            this.timestamp = data.timestamp;
-        },
-
-        setWalletData(data) {
-            this.balance = data.balance;
-            this.timestamp = data.last_updated;
-        },
-
-        cleanup() {
-            sseService.unsubscribe('wallet_update', this.handleWalletUpdate);
-            sseService.unsubscribe('bet_update', this.betUpdate);
-            sseService.cleanup();
-        },
-
-        setTransactions(transactions) {
-            this.transactions = transactions;
-        }
+    function initializeSSE() {
+        sseService.subscribe('wallet_update', handleWalletUpdate);
+        sseService.subscribe('transaction_update', transactionUpdate);
+        sseService.connect();
     }
+
+    function transactionUpdate(data) {
+        transactions.value.push(data.transaction);
+        balance.value = parseFloat(data.balance.toFixed(2));
+        timestamp.value = data.timestamp;
+
+        const notification = useNotificationStore();
+        const isBonus = data.transaction.category === 'bonus';
+        const color = isBonus ? 'green' : 'red';
+        const sign = isBonus ? '+' : '-';
+        const message = `${sign}${Math.abs(data.transaction.amount)} — ${data.transaction.description}`;
+        notification.show(message, color);
+    }
+
+    function handleWalletUpdate(data) {
+        balance.value = parseFloat(data.balance.toFixed(2));
+        timestamp.value = data.timestamp;
+    }
+
+    function setWalletData(data) {
+        balance.value = parseFloat(data.balance.toFixed(2));
+        timestamp.value = data.last_updated;
+    }
+
+    function cleanup() {
+        sseService.unsubscribe('wallet_update', handleWalletUpdate);
+        sseService.unsubscribe('transaction_update', transactionUpdate);
+        sseService.cleanup();
+    }
+
+    function setTransactions(newTransactions) {
+        transactions.value = newTransactions;
+    }
+
+    return {
+        balance,
+        timestamp,
+        transactions,
+        initializeSSE,
+        transactionUpdate,
+        handleWalletUpdate,
+        setWalletData,
+        cleanup,
+        setTransactions
+    };
 });
