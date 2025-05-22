@@ -44,14 +44,14 @@
               <div class="stat">
                 <i class="bi bi-controller"></i>
                 <div class="progress-container">
-                  <div class="progress-bar" :style="{ width: `${((game.max_sessions_per_user - walletStore.gameSessionsCount[game.id]) / game.max_sessions_per_user) * 100}%` }"></div>
-                  <span class="progress-text">{{ game.max_sessions_per_user - walletStore.gameSessionsCount[game.id] }} / {{ game.max_sessions_per_user }}</span>
+                  <div class="progress-bar" :style="{ width: `${((game.max_sessions_per_user - gameStore.gameSessionsCount.get(game.id)) / game.max_sessions_per_user) * 100}%` }"></div>
+                  <span class="progress-text">{{ game.max_sessions_per_user - gameStore.gameSessionsCount.get(game.id) }} / {{ game.max_sessions_per_user }}</span>
                 </div>
               </div>
               <div class="stat">
                 <img :src="CoinIcon" class="coin-icon" alt="coin" />
-                <span class="value" :class="{ 'positive': walletStore.gamePnls[game.id] > 0, 'negative': walletStore.gamePnls[game.id] < 0 }">
-                  {{ walletStore.gamePnls[game.id] }}
+                <span class="value" :class="{ 'positive': gameStore.gamePnls.get(game.id) > 0, 'negative': gameStore.gamePnls.get(game.id) < 0 }">
+                  {{ gameStore.gamePnls.get(game.id) }}
                 </span>
               </div>
             </div>
@@ -68,31 +68,24 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { useWalletStore } from '@/store/walletStore';
+import { useGameStore } from '@/store/gameStore';
 import api from '@/services/api';
 import CoinIcon from '@/assets/coins-solid.svg';
 
 const walletStore = useWalletStore();
-const games = ref([]);
+const gameStore = useGameStore();
+const games = computed(() => gameStore.games);
 
 const balance = computed(() => walletStore.balance);
 const timestamp = computed(() => walletStore.timestamp);
 const transactions = computed(() => walletStore.transactions);
-const gamePnls = computed(() => walletStore.gamePnls);
-const gameSessionsCount = computed(() => walletStore.gameSessionsCount);
-const gameBetsCount = computed(() => walletStore.gameBetsCount);
 
 const fetchGames = async () => {
     try {
         const response = await api.get('/games');
         if (response.status === 200) {
-            games.value = response.data.games;
-            // Initialize game PNLs in wallet store
-            games.value.forEach(game => {
-                walletStore.gamePnls[game.id] = game.pnl;
-                walletStore.gameSessionsCount[game.id] = game.session_count;
-                walletStore.gameBetsCount[game.id] = game.bet_count;
-            });
-            console.log('Games fetched:', games.value);
+            gameStore.initializeGames(response.data.games);
+            console.log('Games fetched:', response.data.games);
         }
     } catch (error) {
         console.error('Error fetching games:', error);
@@ -110,6 +103,7 @@ onMounted(async () => {
   }
   await fetchGames();
   walletStore.initializeSSE();
+  gameStore.initializeSSE();
 });
 </script>
 
