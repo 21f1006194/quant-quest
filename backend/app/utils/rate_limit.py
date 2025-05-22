@@ -4,6 +4,8 @@ import redis
 from app import db
 from app.models.gameplay import Game, GameSession
 from app.utils.auth import get_api_user, api_token_required
+from app.services.wallet_service import WalletService
+from app.models.wallet import TransactionCategory
 
 # Initialize Redis client with configuration
 redis_client = redis.Redis(
@@ -131,8 +133,28 @@ def custom_rate_limit(f):
         current_count = int(current_count)
 
         if current_count >= 20:
-            # If we hit 20 requests, extend to 60 seconds
+            # If we hit 20 requests, extend to 60 seconds and apply penalty
             redis_client.setex(key, 60, current_count)
+
+            # Apply penalty using WalletService
+            try:
+                current_balance = WalletService.get_balance(user_id)
+                penalty_amount = max(50, int(current_balance * 0.05))
+                WalletService.create_penalty(
+                    user_id=user_id,
+                    amount=penalty_amount,
+                    description="Speeding Ticket! API Rate limit exceeded.",
+                    transaction_info={
+                        "rate_limit_key": key,
+                        "request_count": current_count,
+                        "penalty_reason": "rate_limit_exceeded",
+                    },
+                )
+            except Exception as e:
+                current_app.logger.error(
+                    f"Failed to apply rate limit penalty: {str(e)}"
+                )
+
             return {
                 "error": "Rate limit exceeded. Please try again in 60 seconds."
             }, 429
