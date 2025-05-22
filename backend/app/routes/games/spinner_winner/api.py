@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
-from app.utils.auth import api_token_required, get_api_user
-from app.utils.rate_limit import session_rate_limit, bets_rate_limit
+from app.utils.auth import get_api_user
+from app.utils.rate_limit import session_rate_limit, play_rate_limited
 from .engine import SpinnerWinner
 from app.services import BetService, BetData, GameSessionService, GameService
 
@@ -10,7 +10,7 @@ class GamePlayAPI(Resource):
     def __init__(self):
         self.engine = SpinnerWinner()
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("spinner_winner")
     def get(self):
         user = get_api_user()
@@ -20,7 +20,7 @@ class GamePlayAPI(Resource):
             "min_bet_amount": self.engine.min_bet_amount,
         }
 
-    @api_token_required
+    @play_rate_limited
     @session_rate_limit("spinner_winner")
     def post(self):
         user = get_api_user()
@@ -43,7 +43,7 @@ class GamePlayAPI(Resource):
         )
         return {"session_id": session_id, "wheel": show_wheel}, 201
 
-    @api_token_required
+    @play_rate_limited
     def patch(self):
         user = get_api_user()
         data = request.get_json()
