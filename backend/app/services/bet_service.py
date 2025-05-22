@@ -66,6 +66,10 @@ class BetService:
                 if not session:
                     raise ValueError(f"Session {session_id} not found")
 
+                # Store values we'll need later
+                game_id = session.game_id
+                user_id = session.user_id
+
                 # Validate wallet balance
                 BetService.validate_bet_amount(session.user_id, bet_data.amount)
 
@@ -75,20 +79,18 @@ class BetService:
                 # Create bet
                 bet = Bet(
                     session_id=session_id,
-                    game_id=session.game_id,
-                    user_id=session.user_id,
+                    game_id=game_id,  # Use stored game_id
+                    user_id=user_id,  # Use stored user_id
                     amount=bet_data.amount,
                     choice=bet_data.choice,
                     payout=bet_data.payout,
                     bet_details=bet_data.bet_details,
                 )
 
-                ## TODO: May be keeping both session.netflow and game pnl is not a good idea.
-                ## We should only keep one of them. (gamepnl is more useful), optimize later.
                 # Update session and wallet
                 session.bet_count += 1
                 session.net_flow += bet_data.payout - bet_data.amount
-                wallet = WalletService.get_wallet(session.user_id)
+                wallet = WalletService.get_wallet(user_id)
                 wallet.current_balance -= bet_data.amount
                 wallet.current_balance += bet_data.payout
                 # update the pnl for the game
@@ -98,13 +100,13 @@ class BetService:
 
             db.session.commit()
 
-            # Publish bet event
+            # Publish bet event using stored values
             sse_service = SSEService()
             sse_service.publish_event(
-                session.user_id,
+                user_id,
                 "bet_update",
                 {
-                    "game_id": session.game_id,
+                    "game_id": game_id,
                     "bet_id": bet.id,
                     "amount": bet_data.amount,
                     "payout": bet_data.payout,
@@ -163,6 +165,10 @@ class BetService:
                 if bet.session_id != session_id:
                     raise ValueError("Bet does not belong to the specified session")
 
+                # Store values we'll need later
+                game_id = session.game_id
+                user_id = session.user_id
+
                 # Calculate the difference in amount and payout
                 amount_diff = bet_data.amount - bet.amount
                 payout_diff = bet_data.payout - bet.payout
@@ -170,7 +176,7 @@ class BetService:
 
                 # Validate wallet balance if amount is increasing
                 if amount_diff > 0:
-                    BetService.validate_bet_amount(session.user_id, amount_diff)
+                    BetService.validate_bet_amount(user_id, amount_diff)
 
                 # Update bet details
                 bet.amount = bet_data.amount
@@ -180,7 +186,7 @@ class BetService:
 
                 # Update session and wallet
                 session.net_flow += total_diff
-                wallet = WalletService.get_wallet(session.user_id)
+                wallet = WalletService.get_wallet(user_id)
                 wallet.current_balance -= amount_diff
                 wallet.current_balance += payout_diff
 
@@ -191,13 +197,13 @@ class BetService:
 
             db.session.commit()
 
-            # Publish bet update event
+            # Publish bet update event using stored values
             sse_service = SSEService()
             sse_service.publish_event(
-                session.user_id,
+                user_id,
                 "bet_update",
                 {
-                    "game_id": session.game_id,
+                    "game_id": game_id,
                     "bet_id": bet.id,
                     "amount": bet_data.amount,
                     "payout": bet_data.payout,
