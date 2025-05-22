@@ -53,6 +53,9 @@ class TransactionCategory(Enum):
     def __str__(self):
         return self.value
 
+    def __repr__(self):
+        return self.value
+
 
 class Transaction(db.Model):
     __tablename__ = "transactions"
@@ -64,7 +67,7 @@ class Transaction(db.Model):
 
     amount = db.Column(db.Float, nullable=False)
     type = db.Column(SQLEnum(TransactionType), nullable=False)
-    category = db.Column(SQLEnum(TransactionCategory), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(255), nullable=False)
     transaction_info = db.Column(
         db.JSON, nullable=True
@@ -94,6 +97,10 @@ class Transaction(db.Model):
             kwargs["type"] = TransactionType.DEBIT
         else:
             raise ValueError("Invalid transaction category")
+
+        # Convert category enum to string
+        if isinstance(category, TransactionCategory):
+            kwargs["category"] = category.value
 
         super().__init__(**kwargs)
 

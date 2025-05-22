@@ -18,11 +18,27 @@ class WalletService:
         return wallet.current_balance if wallet else 0.0
 
     @staticmethod
-    def create_transaction(
-        user_id, amount, category, description, transaction_info=None
-    ):
+    def _publish_transaction_event(user_id, wallet, amount, category, description):
+        """Helper method to publish transaction events to SSE"""
+        sse_service = SSEService()
+        sse_service.publish_event(
+            user_id,
+            "transaction_update",
+            {
+                "balance": wallet.current_balance,
+                "transaction": {
+                    "amount": amount,
+                    "category": category.value,
+                    "description": description,
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+
+    @staticmethod
+    def create_bonus(user_id, amount, description, transaction_info=None):
         """
-        Create a transaction and update wallet balance.
+        Create a bonus transaction and update wallet balance.
         This is an atomic operation.
         """
         try:
@@ -34,18 +50,13 @@ class WalletService:
             transaction = Transaction(
                 wallet_id=wallet.id,
                 amount=amount,
-                category=category,
+                category=TransactionCategory.BONUS,
                 description=description,
                 transaction_info=transaction_info,
             )
 
             # Update wallet balance
-            if category == TransactionCategory.BONUS:
-                wallet.current_balance += amount
-            elif category in [TransactionCategory.PENALTY, TransactionCategory.EXPENSE]:
-                wallet.current_balance -= amount
-            else:
-                raise ValueError(f"Invalid transaction category: {category}")
+            wallet.current_balance += amount
 
             # Add both to session
             db.session.add(transaction)
@@ -55,19 +66,8 @@ class WalletService:
             db.session.commit()
 
             # Publish wallet update event
-            sse_service = SSEService()
-            sse_service.publish_event(
-                user_id,
-                "transaction_update",
-                {
-                    "balance": wallet.current_balance,
-                    "transaction": {
-                        "amount": amount,
-                        "category": category.value,
-                        "description": description,
-                    },
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                },
+            WalletService._publish_transaction_event(
+                user_id, wallet, amount, TransactionCategory.BONUS, description
             )
 
             return transaction
@@ -77,9 +77,52 @@ class WalletService:
             raise ValueError("Database error occurred") from e
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error creating transaction: {str(e)}") from e
+            raise RuntimeError(f"Error creating bonus transaction: {str(e)}") from e
 
-    ## TODO: Make this an atomic transaction, if a bonus is applied, it should be applied to all accounts
+    @staticmethod
+    def create_penalty(user_id, amount, description, transaction_info=None):
+        """
+        Create a penalty transaction and update wallet balance.
+        This is an atomic operation.
+        """
+        try:
+            wallet = WalletService.get_wallet(user_id)
+            if not wallet:
+                raise ValueError(f"No wallet found for user {user_id}")
+
+            # Create transaction
+            transaction = Transaction(
+                wallet_id=wallet.id,
+                amount=amount,
+                category=TransactionCategory.PENALTY,
+                description=description,
+                transaction_info=transaction_info,
+            )
+
+            # Update wallet balance
+            wallet.current_balance -= amount
+
+            # Add both to session
+            db.session.add(transaction)
+            db.session.add(wallet)
+
+            # Commit transaction
+            db.session.commit()
+
+            # Publish wallet update event
+            WalletService._publish_transaction_event(
+                user_id, wallet, amount, TransactionCategory.PENALTY, description
+            )
+
+            return transaction
+
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError("Database error occurred") from e
+        except Exception as e:
+            db.session.rollback()
+            raise RuntimeError(f"Error creating penalty transaction: {str(e)}") from e
+
     @staticmethod
     def create_bonus_for_all_users(amount, description, transaction_info=None):
         """
@@ -94,10 +137,9 @@ class WalletService:
 
         for wallet in wallets:
             try:
-                transaction = WalletService.create_transaction(
+                transaction = WalletService.create_bonus(
                     user_id=wallet.user_id,
                     amount=amount,
-                    category=TransactionCategory.BONUS,
                     description=description,
                     transaction_info=transaction_info,
                 )

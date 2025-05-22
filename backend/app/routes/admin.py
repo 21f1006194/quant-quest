@@ -51,10 +51,9 @@ class UserBonusAPI(Resource):
             if not description:
                 return {"error": "Description is required"}, 400
 
-            transaction = WalletService.create_transaction(
+            transaction = WalletService.create_bonus(
                 user_id=user_id,
                 amount=amount,
-                category=TransactionCategory.BONUS,
                 description=description,
                 transaction_info=data.get("transaction_info"),
             )
@@ -86,10 +85,9 @@ class UserPenaltyAPI(Resource):
             if not description:
                 return {"error": "Description is required"}, 400
 
-            transaction = WalletService.create_transaction(
+            transaction = WalletService.create_penalty(
                 user_id=user_id,
                 amount=amount,
-                category=TransactionCategory.PENALTY,
                 description=description,
                 transaction_info=data.get("transaction_info"),
             )

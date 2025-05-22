@@ -3,7 +3,9 @@ from flask import request, current_app
 import redis
 from app import db
 from app.models.gameplay import Game, GameSession
-from app.utils.auth import get_api_user
+from app.utils.auth import get_api_user, api_token_required
+from app.services.wallet_service import WalletService
+from app.models.wallet import TransactionCategory
 
 # Initialize Redis client with configuration
 redis_client = redis.Redis(
@@ -42,6 +44,11 @@ def get_remaining_bets(user_id, game_name):
         "sessions": game.max_sessions_per_user - redis_client.get(key2),
         "bets": game.max_bets_per_session - redis_client.get(key1),
     }
+
+
+def play_rate_key(user_id):
+    """Generate rate limit key for play endpoints"""
+    return f"play_rate:{user_id}"
 
 
 def session_rate_limit(game_name):
@@ -103,3 +110,62 @@ def bets_rate_limit(game_name):
         return decorated
 
     return decorator
+
+
+def custom_rate_limit(f):
+    """Custom rate limiter with dynamic expiry times"""
+
+    @wraps(f)
+    @api_token_required
+    def decorated(*args, **kwargs):
+        user_id = get_api_user().id
+        key = play_rate_key(user_id)
+
+        # Get current count and TTL
+        current_count = redis_client.get(key)
+        current_ttl = redis_client.ttl(key)
+
+        if current_count is None or current_ttl <= 0:
+            # First request or expired window - start new 5 second window
+            redis_client.setex(key, 5, 1)  # Set 5 second expiry with count 1
+            return f(*args, **kwargs)
+
+        current_count = int(current_count)
+
+        if current_count >= 20:
+            # If we hit 20 requests, extend to 60 seconds and apply penalty
+            redis_client.setex(key, 60, current_count)
+
+            # Apply penalty using WalletService
+            try:
+                current_balance = WalletService.get_balance(user_id)
+                penalty_amount = max(50, int(current_balance * 0.05))
+                WalletService.create_penalty(
+                    user_id=user_id,
+                    amount=penalty_amount,
+                    description="Speeding Ticket! API Rate limit exceeded.",
+                    transaction_info={
+                        "rate_limit_key": key,
+                        "request_count": current_count,
+                        "penalty_reason": "rate_limit_exceeded",
+                    },
+                )
+            except Exception as e:
+                current_app.logger.error(
+                    f"Failed to apply rate limit penalty: {str(e)}"
+                )
+
+            return {
+                "error": "Rate limit exceeded. Please try again in 60 seconds."
+            }, 429
+
+        # Increment counter while preserving TTL
+        redis_client.incr(key)
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def play_rate_limited(f):
+    """Decorator that combines API token requirement and rate limiting"""
+    return custom_rate_limit(f)
