@@ -35,7 +35,7 @@ const fetchGames = async () => {
         games.value = response.data.games;
         // Initialize game PNLs in wallet store
         games.value.forEach(game => {
-            walletStore.gamePnls[game.id] = game.pnl;
+            walletStore.gamePnls[game.id] = parseFloat(game.pnl.toFixed(2));
             walletStore.gameSessionsCount[game.id] = game.session_count;
             walletStore.gameBetsCount[game.id] = game.bet_count;
         });

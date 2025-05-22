@@ -37,7 +37,7 @@ export const useWalletStore = defineStore('wallet', {
         betUpdate(data) {
             this.balance = data.balance;
             this.timestamp = data.timestamp;
-            this.gamePnls[data.game_id] = data.pnl;
+            this.gamePnls[data.game_id] = parseFloat(data.pnl.toFixed(2));
             this.gameSessionsCount[data.game_id] = data.session_count;
             this.gameBetsCount[data.game_id] = data.bet_count;
         },

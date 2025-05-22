@@ -5,7 +5,7 @@
   "default_max_bets_per_session": 1,
   "default_is_active": true,
   "default_difficulty": "easy",
-  "default_tags": "coin, demo, compatibility_test",
+  "default_tags": "coin, demo, compatibility test",
   "default_config": {
     "min_bet_amount": 10,
     "payout": 1.7,
