@@ -85,10 +85,9 @@ class UserService:
 
             # Add joining bonus
             try:
-                WalletService.create_transaction(
+                WalletService.create_bonus(
                     user_id=user.id,
                     amount=2000.0,
-                    category=TransactionCategory.BONUS,
                     description="Welcome bonus!",
                 )
             except Exception as e:
