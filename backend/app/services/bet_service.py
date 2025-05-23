@@ -6,9 +6,6 @@ from sqlalchemy.exc import IntegrityError
 from dataclasses import dataclass
 from typing import Optional, Any
 from datetime import datetime, timezone
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -73,10 +70,6 @@ class BetService:
                 game_id = session.game_id
                 user_id = session.user_id
 
-                logger.info(
-                    f"Bet creation - Session {session_id} - Initial game_id: {game_id}"
-                )
-
                 # Validate wallet balance
                 BetService.validate_bet_amount(session.user_id, bet_data.amount)
 
@@ -107,27 +100,23 @@ class BetService:
 
             db.session.commit()
 
-            logger.info(
-                f"Bet creation - Session {session_id} - After commit game_id: {game_id}"
-            )
-
             # Publish bet event using stored values
             sse_service = SSEService()
-            event_data = {
-                "game_id": game_id,
-                "bet_id": bet.id,
-                "amount": bet_data.amount,
-                "payout": bet_data.payout,
-                "balance": wallet.current_balance,
-                "pnl": game_pnl.pnl,
-                "bet_count": game_pnl.bet_count,
-                "session_count": game_pnl.session_count,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-            logger.info(
-                f"Bet creation - Session {session_id} - Publishing SSE with game_id: {game_id}"
+            sse_service.publish_event(
+                user_id,
+                "bet_update",
+                {
+                    "game_id": game_id,
+                    "bet_id": bet.id,
+                    "amount": bet_data.amount,
+                    "payout": bet_data.payout,
+                    "balance": wallet.current_balance,
+                    "pnl": game_pnl.pnl,
+                    "bet_count": game_pnl.bet_count,
+                    "session_count": game_pnl.session_count,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
             )
-            sse_service.publish_event(user_id, "bet_update", event_data)
 
             return bet, wallet
 
