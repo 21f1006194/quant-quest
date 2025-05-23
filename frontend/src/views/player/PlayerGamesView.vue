@@ -4,14 +4,14 @@
         <div class="games-grid">
             <GameCard
                 v-for="game in games"
-                :key="game.id"
+                :key="game.game_id"
                 :game-name="game.name"
                 :max-sessions="game.max_sessions_per_user"
-                :sessions-used="gameStore.gameSessionsCount.get(game.id)"
+                :sessions-used="gameStore.gameSessionsCount.get(game.game_id)"
                 :max-bets="game.max_bets_per_session"
                 :difficulty="game.difficulty"
                 :tags="game.tags"
-                :pnl="gameStore.gamePnls.get(game.id)"
+                :pnl="gameStore.gamePnls.get(game.game_id)"
             />
         </div>
     </div>

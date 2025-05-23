@@ -12,9 +12,9 @@ export const useGameStore = defineStore('game', () => {
     function initializeGames(gamesData) {
         games.value = gamesData;
         gamesData.forEach(game => {
-            gamePnls.value.set(game.id, parseFloat(game.pnl.toFixed(2)));
-            gameSessionsCount.value.set(game.id, game.session_count);
-            gameBetsCount.value.set(game.id, game.bet_count);
+            gamePnls.value.set(game.game_id, parseFloat(game.pnl.toFixed(2)));
+            gameSessionsCount.value.set(game.game_id, game.session_count);
+            gameBetsCount.value.set(game.game_id, game.bet_count);
         });
     }
 

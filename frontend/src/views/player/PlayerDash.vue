@@ -34,7 +34,7 @@
         <h2>Games</h2>
         <div class="games-grid">
           <div v-for="game in games" 
-               :key="game.id" 
+               :key="game.game_id" 
                class="game-card">
             <div class="game-header">
               <div class="game-name">{{ game.name.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}</div>
@@ -44,14 +44,14 @@
               <div class="stat">
                 <i class="bi bi-controller"></i>
                 <div class="progress-container">
-                  <div class="progress-bar" :style="{ width: `${((game.max_sessions_per_user - gameStore.gameSessionsCount.get(game.id)) / game.max_sessions_per_user) * 100}%` }"></div>
-                  <span class="progress-text">{{ game.max_sessions_per_user - gameStore.gameSessionsCount.get(game.id) }} / {{ game.max_sessions_per_user }}</span>
+                  <div class="progress-bar" :style="{ width: `${((game.max_sessions_per_user - gameStore.gameSessionsCount.get(game.game_id)) / game.max_sessions_per_user) * 100}%` }"></div>
+                  <span class="progress-text">{{ game.max_sessions_per_user - gameStore.gameSessionsCount.get(game.game_id) }} / {{ game.max_sessions_per_user }}</span>
                 </div>
               </div>
               <div class="stat">
                 <img :src="CoinIcon" class="coin-icon" alt="coin" />
-                <span class="value" :class="{ 'positive': gameStore.gamePnls.get(game.id) > 0, 'negative': gameStore.gamePnls.get(game.id) < 0 }">
-                  {{ gameStore.gamePnls.get(game.id) }}
+                <span class="value" :class="{ 'positive': gameStore.gamePnls.get(game.game_id) > 0, 'negative': gameStore.gamePnls.get(game.game_id) < 0 }">
+                  {{ gameStore.gamePnls.get(game.game_id) }}
                 </span>
               </div>
             </div>
