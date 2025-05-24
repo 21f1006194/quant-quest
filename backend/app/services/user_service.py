@@ -174,14 +174,28 @@ class UserService:
 
     @staticmethod
     def bulk_whitelist_users(users):
-        """Bulk whitelist users as a single transaction"""
+        """Bulk whitelist users as a single transaction, skipping any duplicate emails"""
         try:
-            db.session.bulk_insert_mappings(WhitelistedUser, users)
+            # Get all existing whitelisted emails
+            existing_emails = set(
+                email[0] for email in db.session.query(WhitelistedUser.email).all()
+            )
+
+            # Filter out users with duplicate emails
+            new_users = [user for user in users if user["email"] not in existing_emails]
+
+            if not new_users:
+                return {"message": "No new users to whitelist", "skipped": len(users)}
+
+            # Bulk insert only the new users
+            db.session.bulk_insert_mappings(WhitelistedUser, new_users)
             db.session.commit()
-            return True
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"User with this email already exists: {str(e)}") from e
+
+            return {
+                "message": "Users whitelisted successfully",
+                "added": len(new_users),
+                "skipped": len(users) - len(new_users),
+            }
         except Exception as e:
             db.session.rollback()
             raise e
