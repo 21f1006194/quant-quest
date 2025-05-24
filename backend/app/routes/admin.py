@@ -231,11 +231,13 @@ class BulkWhitelistAPI(Resource):
             users = process_whitelist_csv(csv_content)
 
             # Bulk whitelist the users
-            UserService.bulk_whitelist_users(users)
+            result = UserService.bulk_whitelist_users(users)
 
             return {
-                "message": f"Successfully whitelisted {len(users)} users",
-                "users": users,
+                "message": result["message"],
+                "added": result.get("added", 0),
+                "skipped": result.get("skipped", 0),
+                "total_processed": len(users),
             }, 201
 
         except ValueError as e:
