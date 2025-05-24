@@ -7,7 +7,7 @@
                 <h2>Game Description</h2>
                 <p>
                     Welcome to the Coin Toss Challenge! You'll be playing with a special coin that has its own unique characteristics. 
-                    The same coin will be used throughout your session, giving you the opportunity to learn its patterns. 
+                    The same coin will be used throughout all of your sessions, giving you the opportunity to learn its patterns. 
                     Can you figure out which side it favors?
                 </p>
             </div>
@@ -15,18 +15,18 @@
                 <h3>Game Configuration</h3>
                 <p>Maximum rounds per user: {{ gameData.max_sessions_per_user }}</p>
                 <p>Payout: {{ gameData.config_data.payout }}x your bet</p>
-                <p>Minimum bet: 10</p>
+                <p>Minimum bet: {{ gameData.config_data.min_bet_amount }}</p>
             </div>
             <div class="how-to-play">
                 <h2>How to Play</h2>
                 <ol>
                   <li>
-                    <strong>Start a round:</strong> <br />
-                    Send a <code>POST</code> request to <code>/play/coin_toss</code> with your API token in the header.
+                    <strong>Start a round (Toss the coin):</strong> <br />
+                    Send an empty <code>POST</code> request to <code>/play/coin_toss</code> to toss the coin.
                   </li>
                   <li>
                     <strong>Make your Bet:</strong> <br />
-                    Send a <code>PATCH</code> request to <code>/play/coin_toss</code> with your prediction and bet amount.
+                    Send a <code>PATCH</code> request to <code>/play/coin_toss</code> with your prediction choice and bet amount to place your bet.
                   </li>
                   <li>
                     <strong>See the results:</strong> <br />
@@ -76,6 +76,23 @@
                   Can you master its behavior and maximize your winnings?
                 </p>
             </div>
+
+            <div class="sct-tips">
+                <h2>SCT Tips</h2>
+                <p class="sct-note">Note: These tips are specific to the Coin Toss SCT and won't be available for other games.</p>
+                <div class="tips-content">
+                    <ul>
+                        <li>Start with minimum bet ({{ gameData.config_data.min_bet_amount }} units) to understand the response structure</li>
+                        <li>You have {{ gameData.max_sessions_per_user }} attempts with {{ gameData.config_data.payout }}x payout - use them wisely!</li>
+                        <li>Use minimum bets to collect data and look for patterns in the coin's behavior</li>
+                        <li>Once you have a strategy, implement it with larger bets</li>
+                        <li>Remember: Maximum 3 API hits per second to avoid penalties</li>
+                        <li>The same coin is used throughout all sessions - use this to your advantage!</li>
+                        <li>Use the python template given below to get started</li>
+                    </ul>
+                </div>
+            </div>
+            
             <details>
                 <summary>Python Template</summary>
                 <PythonTemplate v-if="template" :code="template" :game_name="gameData.name" />
@@ -112,5 +129,40 @@ onMounted(async () => {
     max-height: 300px;
     object-fit: cover;
     margin-bottom: 1rem;
+}
+
+.sct-tips {
+    margin-top: 2rem;
+    padding: 1rem;
+    /* background-color: #f5f5f5; */
+    border-radius: 8px;
+}
+
+.sct-note {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.tips-content {
+    margin-top: 1rem;
+}
+
+.tips-content ul {
+    list-style-type: none;
+    padding-left: 1rem;
+}
+
+.tips-content li {
+    margin-bottom: 0.5rem;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.tips-content li:before {
+    content: "•";
+    color: #42b983;
+    position: absolute;
+    left: 0;
 }
 </style>

@@ -16,6 +16,7 @@ class GamePlay:
         }
 
     def get_game_data(self):
+        """Get initial game data and configuration"""
         response = requests.get(
             f"{BASE_URL}/play/coin_toss",
             headers=self.headers,
@@ -26,6 +27,7 @@ class GamePlay:
             raise Exception("Failed to get game data")
 
     def play(self):
+        """Toss the coin and start a new session"""
         payload = {}
         response = requests.post(
             f"{BASE_URL}/play/coin_toss",
@@ -35,12 +37,12 @@ class GamePlay:
         sleep(0.2)  # Required to avoid rate limit -- Don't change
         if response.status_code == 200 or response.status_code == 201:
             self.session_id = response.json()["session_id"]
-            self.toss_result = None  # Hidden until bet
             return {"message": "Coin has been tossed. Place your bet."}
         else:
             raise Exception("Failed to start game")
 
     def bet(self, choice, bet_amount):
+        """Place your bet (H for Heads, T for Tails)"""
         if choice not in ["H", "T"]:
             raise Exception("Choice must be 'H' or 'T'")
         payload = {
