@@ -1,9 +1,9 @@
 {
     "type": "stateless",
-    "ignore": false,
+    "ignore": true,
     "default_max_sessions_per_user": 1000,
     "default_max_bets_per_session": 1,
-    "default_is_active": true,
+    "default_is_active": false,
     "default_difficulty": "medium",
     "default_tags": "mean reversion",
     "default_config": {
