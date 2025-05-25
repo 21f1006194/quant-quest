@@ -5,7 +5,15 @@
         <div v-if="gameData" class="game-info">
             <div class="description">
                 <h2>Game Description</h2>
-                <p>{{ gameData.description }}</p>
+                <p>
+                    Step into the boots of a regiment commander in <strong>Sniper Shot</strong>—a high-stakes test of intuition, leadership, and probability. You command a squad of 27 elite snipers, each taking a shot at their designated target under your watch.
+                </p>
+                <p>
+                    Your mission isn't to pull the trigger, but to anticipate performance — <strong>place your wager on how many snipers will hit their mark</strong>. Each sniper fires independently, and success is never guaranteed. Will your judgment prove sharp under pressure, or will uncertainty cloud your call?
+                </p>
+                <p>
+                    Your goal: <strong>Predict the total number of successful hits</strong> across all 27 snipers. Think tactically, weigh the odds, and trust your instincts — the outcome of this operation depends on your ability to read the battlefield from afar.
+                </p>
             </div>
             <div class="config">
                 <h3>Game Configuration</h3>
