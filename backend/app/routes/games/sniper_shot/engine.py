@@ -17,9 +17,13 @@ class SniperShotEngine:
         total_hits = self.simulate_game()
         payout = float(self.config_data["payout"])
         if choice == total_hits:
-            return {"result": "win", "payout": bet_amount * payout}
+            return {
+                "result": "win",
+                "payout": bet_amount * payout,
+                "total_hits": total_hits,
+            }
         else:
-            return {"result": "loss", "payout": 0}
+            return {"result": "loss", "payout": 0, "total_hits": total_hits}
 
 
 if __name__ == "__main__":
