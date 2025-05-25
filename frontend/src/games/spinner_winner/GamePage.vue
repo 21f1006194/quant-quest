@@ -28,11 +28,11 @@
                   </li>
                   <li>
                     <strong>Place your bet:</strong> <br />
-                    Send a <code>PATCH</code> request to <code>/play/spinner_winner</code> with your prediction for the next color and your bet amount.
+                    Send a <code>PATCH</code> request to <code>/play/spinner_winner</code> with your prediction for the color you want to bet on and the amount you want to bet.
                   </li>
                   <li>
                     <strong>See the results:</strong> <br />
-                    The response will reveal the wheel's final state, your payout, and updated balance. Win big by correctly predicting the next color!
+                    The response will reveal the wheel's final state, your payout, and updated balance. Win big by correctly predicting the right color!
                   </li>
                 </ol>
                 <details>
