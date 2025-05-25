@@ -16,7 +16,7 @@
         <p>
           <strong>New to Poker?</strong> Don't worry! Scroll down to the "Hand Rankings" section below to learn how different card combinations are valued and how winners are determined. Understanding these rankings is key to making smart betting decisions!
         </p>
-        <p>
+        <div class="key-features">
           <strong>Key Features:</strong>
           <ul>
             <li>Fast-paced gameplay with quick rounds</li>
@@ -25,7 +25,7 @@
             <li>Memory element as cards aren't returned to the deck during the session</li>
             <li>Perfect for both beginners and experienced players</li>
           </ul>
-        </p>
+        </div>
       </div>
       <div class="how-to-play">
         <h2>How to Play</h2>
