@@ -40,7 +40,7 @@
 {
   "session_id": "abc123",
   "choice": "buy", // buy or sell
-  "qty": 10         // positive integer > 1
+  "qty": 10         // positive integer
 }</code></pre>
                 </details>
                 <details>
