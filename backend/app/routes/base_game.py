@@ -3,8 +3,9 @@ import os
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 from app.models.gameplay import Game
-from app import db
+from app.extensions import db
 from app.utils.auth import admin_required
+from app.services.game_service import GameService
 
 
 GAMES_DIR = os.path.join(os.path.dirname(__file__), "games")
@@ -61,6 +62,8 @@ class BaseGameAPI(Resource):
                 changed_fields.append("max_bets_per_session")
             if changed_fields:
                 db.session.commit()
+                # Clear game cache after successful update
+                GameService.clear_game_cache()
                 return {
                     "message": "Game control updated successfully",
                     "changed_fields": changed_fields,

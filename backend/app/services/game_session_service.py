@@ -1,5 +1,5 @@
 from app.models.gameplay import GameSession
-from app import db
+from app.extensions import db
 
 
 class GameSessionService:
@@ -37,4 +37,3 @@ class GameSessionService:
             .order_by(GameSession.id.desc())
             .first()
         )
-

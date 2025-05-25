@@ -3,13 +3,14 @@ from flask_restful import Resource
 from flask import Blueprint
 from flask_restful import Api
 from app.models import User, Bet, GameSession, Game, Wallet
-from app import db
+from app.extensions import db
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 from app.services.game_service import GameService
 from app.services.wallet_service import WalletService
 from flask import request
 from app.utils.image_upload import upload_profile_picture
+from app.services.user_service import UserService
 
 player_bp = Blueprint("player", __name__)
 api = Api(player_bp)
@@ -19,7 +20,7 @@ class PlayerProfile(Resource):
     @jwt_required()
     def get(self):
         user_id = int(get_jwt_identity())
-        user = User.query.get(user_id)
+        user = UserService.get_user_by_id(user_id)
 
         if not user:
             return {"error": "User not found"}, 404
@@ -44,6 +45,10 @@ class PlayerProfile(Resource):
             user.bio = bio
 
         db.session.commit()
+        # Clear user cache after profile update
+        UserService.clear_user_cache(
+            user_id=user_id, username=user.username, email=user.email
+        )
 
         return {"message": "Profile updated successfully"}, 200
 
@@ -91,7 +96,7 @@ class APIToken(Resource):
     def get(self):
         """Get API token status"""
         user_id = int(get_jwt_identity())  # Convert string ID back to integer
-        user = User.query.get(user_id)
+        user = UserService.get_user_by_id(user_id)
 
         if not user:
             return {"error": "User not found"}, 404
@@ -116,6 +121,10 @@ class APIToken(Resource):
 
         api_token = user.generate_api_token()
         db.session.commit()
+        # Clear user cache after API token generation
+        UserService.clear_user_cache(
+            user_id=user_id, username=user.username, email=user.email
+        )
 
         return {
             "api_token": api_token,
@@ -133,6 +142,10 @@ class APIToken(Resource):
 
         user.revoke_api_token()
         db.session.commit()
+        # Clear user cache after API token revocation
+        UserService.clear_user_cache(
+            user_id=user_id, username=user.username, email=user.email
+        )
 
         return {"message": "API token revoked successfully"}, 200
 
@@ -184,6 +197,10 @@ class ProfilePicture(Resource):
         # Update user's avatar URL
         user.avatar_url = image_url
         db.session.commit()
+        # Clear user cache after avatar update
+        UserService.clear_user_cache(
+            user_id=user_id, username=user.username, email=user.email
+        )
 
         return {"avatar_url": image_url}, 200
 

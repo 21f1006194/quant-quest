@@ -1,6 +1,6 @@
 from app.services.bet_service import BetService, BetData
 from app.models.gameplay import GameSession
-from app import db
+from app.extensions import db
 
 
 def validate_bet_data(bet_data, config):

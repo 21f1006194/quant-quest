@@ -1,4 +1,4 @@
-from app import db
+from app.extensions import db
 from app.models.gameplay import GameSession, Bet, GamePnL
 from app.services.wallet_service import WalletService
 from app.services.sse_service import SSEService

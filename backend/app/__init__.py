@@ -5,10 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from app.config import Config, ConfigValidator
 from app.utils import create_admin_if_not_exists
-
-db = SQLAlchemy()
-migrate = Migrate()
-jwt = JWTManager()
+from app.extensions import db, migrate, jwt, cache
 
 
 def initialize_app(app):
@@ -58,6 +55,7 @@ def create_app(config_object=None):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    cache.init_app(app)
 
     # Register blueprints
     from .routes import common_bp, admin_bp, player_bp, game_bp, play_bp
