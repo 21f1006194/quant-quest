@@ -6,7 +6,10 @@
             <div class="description">
                 <h2>Game Description</h2>
                 <p>
-                  Step into the world of <strong>Bayesian Ball</strong>—where logic, deduction, and probability collide! Four mysterious bags, each with their own secret blend of Red, Green, and Blue balls, await your keen mind. Can you outsmart the odds and uncover the hidden patterns?
+                    Welcome to <strong>Bayesian Ball</strong>—a thrilling game of probability and pattern recognition! Four mysterious bags (A, B, C, D) each contain their own unique mix of Red, Green, and Blue balls. Your challenge? Uncover the hidden patterns and make the perfect prediction!
+                </p>
+                <p>
+                    In each round, one bag is secretly selected, and 10 balls are drawn from it. You'll see 9 of these balls, but the 10th remains hidden. Your mission is to predict both the color of the hidden ball and identify which bag it came from. Success requires keen observation and smart probability calculations!
                 </p>
             </div>
             <div class="config">
