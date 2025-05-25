@@ -19,6 +19,7 @@
                 <h3>Game Configuration</h3>
                 <p>Maximum bets per user: {{ gameData.max_sessions_per_user }}</p>
                 <p>Payout: {{ gameData.config_data.payout }}</p>
+                <p>Minimum bet amount: {{ gameData.config_data.min_bet_amount  }}</p>
             </div>
             
             <div class="how-to-play">

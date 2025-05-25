@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # print(game.play())
     # # look at the data and adjust priors
     # # bet on the bag with the highest probability
-    # choice = "", bet_amount = 0
-    # game.bet(choice, bet_amount)
+    # bag = "", ball = "",  bet_amount = 10
+    # game.bet(bag,ball, bet_amount)
     # # update the priors
     # # repeat
