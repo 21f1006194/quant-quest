@@ -65,5 +65,5 @@ if __name__ == "__main__":
     game = GamePlay()
     # game.play()
     # print(game.wheel)
-    # game.bet("Red", 10)
+    # game.bet("Red", 30)
     # print(game.wheel)

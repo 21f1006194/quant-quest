@@ -7,6 +7,6 @@
     "default_difficulty": "medium",
     "default_tags": "probability, expected value",
     "default_config": {
-        "min_bet_amount": 100
+        "min_bet_amount": 30
     }
 }
