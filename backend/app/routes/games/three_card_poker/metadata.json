@@ -8,6 +8,6 @@
     "default_tags": "bayesian,cards",
     "default_config": {
         "min_bet_amount": 100,
-        "payout": 3
+        "payout": 4
     }
 }

@@ -8,7 +8,23 @@
         <h2>Game Description</h2>
         <p>
           Welcome to <strong>Three Card Poker – QuantQuest Edition!</strong> <br>
-          This is a fast-paced, easy-to-learn card game where you play against the dealer. Each round, you get three cards and try to beat the dealer's hand. No poker experience needed—just a bit of luck and a sense of adventure!
+          Experience the thrill of a fast-paced poker variant where strategy meets luck! In this exciting game, you'll face off against the dealer in a battle of wits and chance. Each round, you'll receive three cards from a standard 52-card deck, and your mission is simple: build a stronger poker hand than the dealer's.
+        </p>
+        <p>
+          What makes this game special? It's the perfect blend of quick decision-making and strategic betting. You'll need to think on your feet as you decide whether to fold or raise after seeing your cards. With five rounds per session, each hand brings new opportunities to test your poker skills and intuition.
+        </p>
+        <p>
+          <strong>New to Poker?</strong> Don't worry! Scroll down to the "Hand Rankings" section below to learn how different card combinations are valued and how winners are determined. Understanding these rankings is key to making smart betting decisions!
+        </p>
+        <p>
+          <strong>Key Features:</strong>
+          <ul>
+            <li>Fast-paced gameplay with quick rounds</li>
+            <li>Simple yet strategic betting system</li>
+            <li>Clear hand rankings that are easy to understand</li>
+            <li>Memory element as cards aren't returned to the deck during the session</li>
+            <li>Perfect for both beginners and experienced players</li>
+          </ul>
         </p>
       </div>
       <div class="how-to-play">
