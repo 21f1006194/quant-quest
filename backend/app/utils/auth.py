@@ -1,7 +1,22 @@
 from functools import wraps
 from flask import request
-from app.models import User
-from flask_jwt_extended import verify_jwt_in_request, get_jwt, jwt_required
+from flask_jwt_extended import get_jwt, jwt_required
+from app.services.user_service import UserService
+
+
+def validate_api_token(api_token):
+    """Validate the API token and return the user if valid"""
+    if not api_token:
+        return None
+    try:
+        user_id, token = api_token.split(".")
+        # Use the cached get_user_by_id method
+        user = UserService.get_user_by_id(int(user_id))
+        if not user or not user._api_token or user._api_token != token:
+            return None
+        return user
+    except (ValueError, AttributeError):
+        return None
 
 
 def api_token_required(f):
@@ -13,7 +28,7 @@ def api_token_required(f):
             return {"error": "API token is required"}, 401
 
         # Validate token and get user
-        user = User.validate_api_token(api_token)
+        user = validate_api_token(api_token)
         if not user:
             return {"error": "Invalid API token"}, 401
 

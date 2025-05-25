@@ -1,7 +1,7 @@
 def create_admin_if_not_exists():
     """Create an admin user if one does not already exist."""
     from app.models import User
-    from app import db
+    from app.extensions import db
     from flask import current_app
 
     # Get admin credentials from current app's configuration

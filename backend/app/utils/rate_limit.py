@@ -1,11 +1,9 @@
 from functools import wraps
 from flask import request, current_app
 import redis
-from app import db
-from app.models.gameplay import Game, GameSession
+from app.models.gameplay import Game
 from app.utils.auth import get_api_user, api_token_required
 from app.services.wallet_service import WalletService
-from app.models.wallet import TransactionCategory
 
 # Initialize Redis client with configuration
 redis_client = redis.Redis(

@@ -16,6 +16,8 @@ billiard==4.2.1
     # via celery
 blinker==1.9.0
     # via flask
+cachelib==0.13.0
+    # via flask-caching
 cachetools==5.5.2
     # via google-auth
 celery==5.5.0
@@ -44,6 +46,7 @@ email-validator==2.2.0
 flask==3.1.0
     # via
     #   -r requirements.in
+    #   flask-caching
     #   flask-cors
     #   flask-jwt-extended
     #   flask-login
@@ -51,6 +54,8 @@ flask==3.1.0
     #   flask-restful
     #   flask-sqlalchemy
     #   flask-wtf
+flask-caching==2.3.1
+    # via -r requirements.in
 flask-cors==5.0.1
     # via -r requirements.in
 flask-jwt-extended==4.7.1

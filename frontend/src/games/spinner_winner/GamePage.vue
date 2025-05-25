@@ -8,25 +8,31 @@
                 <p>
                   Welcome to <strong>Spinner Winner</strong>—a thrilling game of chance and strategy! Watch as the wheel spins, revealing a sequence of colors. Your challenge is to predict the next color that will appear. Will you trust your intuition or analyze the patterns? Place your bets and let the wheel decide your fate!
                 </p>
+                <p>
+                  Some colors are big and common, others small but highly rewarding.
+                  Choose wisely. The smartest bet isn't always the safest.
+                </p>
             </div>
             <div class="config">
                 <h3>Game Configuration</h3>
                 <p>Maximum rounds per user: {{ gameData.max_sessions_per_user }}</p>
+                <p>Minimum bet amount: {{ gameData.config_data.min_bet_amount }}</p>
+                <p>Payout: Depends on the color you bet on</p>
             </div>
             <div class="how-to-play">
                 <h2>How to Play</h2>
                 <ol>
                   <li>
                     <strong>Start a round:</strong> <br />
-                    Send a <code>POST</code> request to <code>/play/spinner_winner</code> (include your API token as <code>X-API-Token</code> in the header). You'll receive the current state of the wheel and a session ID to track your game.
+                    Send a <code>POST</code> request to <code>/play/spinner_winner</code> You'll receive the current state of the wheel (colors, their sizes and payouts)and a session ID to track your game.
                   </li>
                   <li>
                     <strong>Place your bet:</strong> <br />
-                    Send a <code>PATCH</code> request to <code>/play/spinner_winner</code> with your prediction for the next color and your bet amount.
+                    Send a <code>PATCH</code> request to <code>/play/spinner_winner</code> with your prediction for the color you want to bet on and the amount you want to bet.
                   </li>
                   <li>
                     <strong>See the results:</strong> <br />
-                    The response will reveal the wheel's final state, your payout, and updated balance. Win big by correctly predicting the next color!
+                    The response will reveal the wheel's final state, your payout, and updated balance. Win big by correctly predicting the right color!
                   </li>
                 </ol>
                 <details>
@@ -46,14 +52,28 @@
                   <pre><code>// POST response
 {
   "session_id": number,
-  "wheel": [{},{}]  // Array of objects showing the wheel segments
-}
+  "wheel": [
+    {
+      "color": "string",
+      "start_angle": number,
+      "end_angle": number,
+      "payout": number
+    },
+    {
+      "color": "string",
+      "start_angle": number,
+      "end_angle": number,
+      "payout": number
+    }
+    ...
+  ]
 
 // PATCH response
 {
   "game_data": {
     "wheel": [{},{},{}] // wheel state
   },
+  "spin_angle": number, //the angle on which the wheel stopped
   "payout": number,
   "current_balance": number
 }</code></pre>

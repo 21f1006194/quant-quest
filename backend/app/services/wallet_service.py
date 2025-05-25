@@ -1,4 +1,4 @@
-from app import db
+from app.extensions import db
 from app.models.wallet import Wallet, Transaction, TransactionType, TransactionCategory
 from sqlalchemy.exc import IntegrityError
 from app.services.sse_service import SSEService

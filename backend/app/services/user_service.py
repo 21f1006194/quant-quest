@@ -1,4 +1,4 @@
-from app import db
+from app.extensions import db, cache
 from app.models import User, Wallet, WhitelistedUser
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
@@ -111,16 +111,19 @@ class UserService:
             raise RuntimeError(f"Error creating user: {str(e)}") from e
 
     @staticmethod
+    @cache.memoize(timeout=300)  # Cache for 5 minutes
     def get_user_by_id(user_id):
         """Get user by ID with their wallet"""
         return User.query.get(user_id)
 
     @staticmethod
+    @cache.memoize(timeout=300)
     def get_user_by_username(username):
         """Get user by username with their wallet"""
         return User.query.filter_by(username=username).first()
 
     @staticmethod
+    @cache.memoize(timeout=300)
     def get_user_by_email(email):
         """Get user by email with their wallet"""
         return User.query.filter_by(email=email).first()
@@ -199,3 +202,19 @@ class UserService:
         except Exception as e:
             db.session.rollback()
             raise e
+
+    @staticmethod
+    def clear_user_cache(user_id=None, username=None, email=None):
+        """Clear user-related caches. If specific identifiers are provided, only clear those caches."""
+        if user_id is not None:
+            cache.delete_memoized(UserService.get_user_by_id, user_id)
+        if username is not None:
+            cache.delete_memoized(UserService.get_user_by_username, username)
+        if email is not None:
+            cache.delete_memoized(UserService.get_user_by_email, email)
+
+        # If no specific identifiers provided, clear all user caches
+        if all(x is None for x in [user_id, username, email]):
+            cache.delete_memoized(UserService.get_user_by_id)
+            cache.delete_memoized(UserService.get_user_by_username)
+            cache.delete_memoized(UserService.get_user_by_email)

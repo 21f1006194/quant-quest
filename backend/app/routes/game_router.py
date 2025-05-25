@@ -3,7 +3,7 @@ from flask_restful import Api
 import importlib
 from .base_game import BaseGameAPI
 from app.services.game_service import GameService
-from app import db
+from app.extensions import db
 
 
 game_bp = Blueprint("game", __name__)

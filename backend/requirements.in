@@ -4,6 +4,7 @@ python-dotenv
 Flask-Migrate
 Flask-login
 Flask-WTF
+flask-caching
 flask-jwt-extended
 Flask-Restful
 requests

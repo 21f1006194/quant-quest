@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
+from app.extensions import db
 import secrets
 import re
 
@@ -60,20 +60,6 @@ class User(db.Model):
         """Revoke the user's API token"""
         self._api_token = None
         self.api_token_created_at = None
-
-    @staticmethod
-    def validate_api_token(api_token):
-        """Validate the API token and return the user if valid"""
-        if not api_token:
-            return None
-        try:
-            user_id, token = api_token.split(".")
-            user = User.query.get(user_id)
-            if not user or not user._api_token or user._api_token != token:
-                return None
-            return user
-        except (ValueError, AttributeError):
-            return None
 
     @staticmethod
     def is_valid_iitm_email(email):

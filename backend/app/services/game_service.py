@@ -1,22 +1,27 @@
 from app.models.gameplay import Game, GameSession, GamePnL
-from app import db
+from app.extensions import db, cache
 from sqlalchemy import case
 
 
 class GameService:
     @staticmethod
+    @cache.memoize(timeout=300)  # Cache for 5 minutes
     def get_all_games():
         return Game.query.all()
 
     @staticmethod
+    @cache.memoize(timeout=300)
     def get_game_by_id(game_id):
+        print("Getting game by id", game_id)
         return Game.query.get(game_id)
 
     @staticmethod
+    @cache.memoize(timeout=300)
     def get_game_by_name(game_name):
         return Game.query.filter_by(name=game_name).first()
 
     @staticmethod
+    @cache.memoize(timeout=300)
     def get_active_games():
         return Game.query.filter_by(is_active=True).all()
 
@@ -46,3 +51,11 @@ class GameService:
             game_pnl = GamePnL(user_id=user_id, game_id=game.id)
             db.session.add(game_pnl)
         db.session.commit()
+
+    @staticmethod
+    def clear_game_cache():
+        """Clear all game-related caches"""
+        cache.delete_memoized(GameService.get_all_games)
+        cache.delete_memoized(GameService.get_game_by_id)
+        cache.delete_memoized(GameService.get_game_by_name)
+        cache.delete_memoized(GameService.get_active_games)

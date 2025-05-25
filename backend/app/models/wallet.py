@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import JSON
-from app import db
+from app.extensions import db
 from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
