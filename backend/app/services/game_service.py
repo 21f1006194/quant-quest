@@ -45,6 +45,14 @@ class GameService:
             return GamePnL.query.filter_by(user_id=user_id).all()
 
     @staticmethod
+    def get_all_pnl():
+        results = db.session.query(GamePnL.game_id, GamePnL.user_id, GamePnL.pnl).all()
+        return [
+            {"game_id": game_id, "user_id": user_id, "pnl": pnl}
+            for game_id, user_id, pnl in results
+        ]
+
+    @staticmethod
     def initialize_game_pnl_for_user(user_id):
         games = Game.query.all()
         for game in games:

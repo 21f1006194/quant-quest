@@ -3,8 +3,7 @@ from flask import Blueprint, request
 from flask_restful import Api
 from app.utils.auth import admin_required
 from app.models.gameplay import Game
-from app.services.wallet_service import WalletService
-from app.models.wallet import TransactionCategory
+from app.services import WalletService, GameService
 from app.services.user_service import UserService
 from app.utils.helpers import process_whitelist_csv
 
@@ -137,6 +136,12 @@ class AllUsersBonusAPI(Resource):
             return {"error": str(e)}, 500
 
 
+class AllUsersGamePnl(Resource):
+    @admin_required
+    def get(self):
+        return GameService.get_all_pnl()
+
+
 class AllUsersAPI(Resource):
     @admin_required
     def get(self):
@@ -257,3 +262,4 @@ api.add_resource(
     WhitelistUserAPI, "/admin/whitelist/<int:w_id>", endpoint="whitelist_user"
 )
 api.add_resource(BulkWhitelistAPI, "/admin/whitelist/bulk")
+api.add_resource(AllUsersGamePnl, "/admin/gamepnldump")
