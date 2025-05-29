@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from app.utils.auth import get_api_user
-from app.utils.rate_limit import session_rate_limit, play_rate_limited
+from app.utils.rate_limit import play_rate_limited
 from .engine import SpinnerWinner
 from app.services import BetService, BetData, GameSessionService, GameService
 
@@ -11,7 +11,6 @@ class GamePlayAPI(Resource):
         self.engine = SpinnerWinner()
 
     @play_rate_limited
-    @session_rate_limit("spinner_winner")
     def get(self):
         user = get_api_user()
         return {
@@ -21,7 +20,6 @@ class GamePlayAPI(Resource):
         }
 
     @play_rate_limited
-    @session_rate_limit("spinner_winner")
     def post(self):
         user = get_api_user()
         game_pnl = GameService.get_game_pnl_by_user(user.id, self.engine.game.id)
