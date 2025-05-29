@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from app.utils.auth import get_api_user
-from app.utils.rate_limit import session_rate_limit, play_rate_limited
+from app.utils.rate_limit import play_rate_limited
 from .engine import TenDiceEngine
 from .utils import validate_bet_data, create_game_session_and_bet, get_bets_for_user
 
@@ -18,7 +18,6 @@ class GamePlayAPI(Resource):
         return {"bets": bets}
 
     @play_rate_limited
-    @session_rate_limit("ten_dice")
     def post(self):
         try:
             user = get_api_user()

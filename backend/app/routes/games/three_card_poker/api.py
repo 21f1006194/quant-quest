@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from app.utils.auth import get_api_user
-from app.utils.rate_limit import session_rate_limit, play_rate_limited
+from app.utils.rate_limit import play_rate_limited
 from .engine import ThreeCardPoker, HAND_TYPES
 from app.services import GameSessionService, BetService, BetData
 
@@ -17,7 +17,6 @@ class GamePlayAPI(Resource):
         return {"result": "current session info"}
 
     @play_rate_limited
-    @session_rate_limit("three_card_poker")
     def post(self):
         user = get_api_user()
         data = request.get_json()
