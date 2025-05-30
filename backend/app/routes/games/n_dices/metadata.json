@@ -1,0 +1,13 @@
+{
+  "type": "statefull",
+  "ignore": false,
+  "default_max_sessions_per_user": 500,
+  "default_max_bets_per_session": 1,
+  "default_is_active": true,
+  "default_difficulty": "Medium",
+  "default_tags": "Dices, distribution",
+  "default_config": {
+    "min_bet_amount": 10,
+    "payout": 16
+  }
+}
