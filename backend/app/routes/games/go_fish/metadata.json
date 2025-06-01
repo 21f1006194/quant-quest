@@ -1,0 +1,15 @@
+{
+    "type": "stateful",
+    "ignore": false,
+    "default_max_sessions_per_user": 150,
+    "default_max_bets_per_session": 7,
+    "default_is_active": true,
+    "default_difficulty": "medium",
+    "default_tags": "bayesian,cards",
+    "default_config": {
+        "min_bet_amount": 50,
+        "half_guess_payout": 1.5,
+        "full_guess_payout": 4,
+        "payout": 4
+    }
+}
