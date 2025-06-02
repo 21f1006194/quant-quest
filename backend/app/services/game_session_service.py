@@ -37,3 +37,11 @@ class GameSessionService:
             .order_by(GameSession.id.desc())
             .first()
         )
+
+    @staticmethod
+    def update_session_data(session_id, new_session_data):
+        session = GameSessionService.get_game_session(session_id)
+        session.session_data = new_session_data
+        db.session.add(session)
+        db.session.commit()
+        return session
