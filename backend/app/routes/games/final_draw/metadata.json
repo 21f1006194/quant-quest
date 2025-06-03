@@ -1,12 +1,12 @@
 {
   "type": "statefull",
   "ignore": false,
-  "default_max_sessions_per_user": 50,
+  "default_max_sessions_per_user": 10,
   "default_max_bets_per_session": 100,
   "default_is_active": true,
   "default_difficulty": "easy",
   "default_tags": "optimal stopping",
   "default_config": {
-    "min_bet_amount": 1
+    "min_bet_amount": 10
   }
 }

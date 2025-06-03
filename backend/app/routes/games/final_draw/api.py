@@ -35,7 +35,12 @@ class GamePlayAPI(Resource):
         session = GameSessionService.get_last_game_session_by_user(
             user.id, self.engine.game.id
         )
-        if session is not None:
+        game_pnl = GameService.get_game_pnl_by_user(user.id, self.engine.game.id)
+
+        if (
+            session is not None
+            and game_pnl.bet_count < self.engine.game.max_bets_per_session
+        ):
             session_data = session.session_data
             if session_data["last_pick"] != -1:
                 return {
@@ -72,7 +77,11 @@ class GamePlayAPI(Resource):
         session_data_updated = self.engine.next(session.session_data, choice)
         bet, wallet = BetService.create_bet(
             session_id,
-            BetData(amount=1, choice=choice, payout=session_data_updated["payout"]),
+            BetData(
+                amount=self.engine.minimum_bet,
+                choice=choice,
+                payout=session_data_updated["payout"],
+            ),
         )
         updated_session = GameSessionService.update_session_data(
             session_id, session_data_updated

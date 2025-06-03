@@ -33,6 +33,7 @@ class FinalDraw:
     def __init__(self):
         self.game = GameService.get_game_by_name("final_draw")
         self.config = self.game.config_data
+        self.minimum_bet = self.config["min_bet_amount"]
 
     def start(self):
         return {

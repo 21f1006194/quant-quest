@@ -6,15 +6,23 @@
             <div class="description">
                 <h2>Game Description</h2>
                 <p>
-                    Welcome to the Final Draw Challenge! You'll be playing with a deck of cards, each with its own unique value.
-                    You'll be shown cards one at a time, and you must decide whether to select the current card or skip to the next one.
-                    Once you select a card, that's your final choice - you can't go back to previous cards!
+                  In this game, you'll face a sequence of 100 hidden cards (per round), each with a different value. You'll be shown one card at a time and must decide immediately: <strong>pick it or skip it </strong>
+                </p>
+                <p>
+                  Once you skip a card, it's gone forever—you can’t go back. The challenge is to decide when to stop and pick a card, without knowing what’s coming next.
+                </p>
+                <p>
+                  Can you figure out the best point to stop, even when the future is uncertain?
+                </p>
+                <p>
+                  <i>Like many decisions in life, you can’t go back—only forward. The trick is knowing when to take the leap.</i>
                 </p>
             </div>
             <div class="config">
                 <h3>Game Configuration</h3>
                 <p>Maximum rounds per user: {{ gameData.max_sessions_per_user }}</p>
-                <p>Minimum bet: 1 unit</p>
+                <p>Maximum hidden cards per round: {{ gameData.max_bets_per_session }}</p>
+                <p>Bet amount: 10 coins will be automatically used per every draw, and you recieve the number of coins mentioned in the card you choose as payout.</p>
             </div>
             <div class="how-to-play">
                 <h2>How to Play</h2>
