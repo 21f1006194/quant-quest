@@ -161,6 +161,7 @@ class AllUsersAPI(Resource):
                     "username": user.username,
                     "email": user.email,
                     "full_name": user.full_name,
+                    "avatar_url": user.avatar_url or None,
                     "wallet_balance": wallet.current_balance if wallet else None,
                     "wallet_last_updated": (
                         wallet.last_updated.isoformat()

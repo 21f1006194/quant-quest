@@ -73,7 +73,9 @@
 import { ref, onMounted } from 'vue'
 import api from '@/services/api'
 import EditGameControl from '@/components/modals/EditGameControl.vue'
+import { useGameStore } from '@/store/gameStore'
 
+const gameStore = useGameStore()
 const totalUsers = ref(0)
 const totalGames = ref(0)
 const activeGames = ref(0)
@@ -90,6 +92,7 @@ onMounted(async () => {
 
     if (gamesListResponse.data && Array.isArray(gamesListResponse.data.games)) {
       games.value = gamesListResponse.data.games
+      gameStore.initializeGames(games.value)
 
       activeGames.value = games.value.filter(g => g.is_active).length
       inactiveGames.value = games.value.filter(g => !g.is_active).length
@@ -128,6 +131,8 @@ const handleGameSaved = async () => {
     const gamesListResponse = await api.get('/admin/games')
     if (gamesListResponse.data && Array.isArray(gamesListResponse.data.games)) {
       games.value = gamesListResponse.data.games
+      gameStore.initializeGames(games.value)
+      
       activeGames.value = games.value.filter(g => g.is_active).length
       inactiveGames.value = games.value.filter(g => !g.is_active).length
       totalGames.value = activeGames.value + inactiveGames.value

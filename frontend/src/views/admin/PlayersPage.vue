@@ -55,6 +55,9 @@
                     </div>
                 </div>
                 <div class="action-buttons">
+                    <button class="view-btn" @click="openPlayerCard(player)">
+                        <i class="bi bi-eye"></i>
+                    </button>
                     <button class="bonus-btn" @click="openModal(true, player.id, player.username)">
                         <i class="bi bi-plus-circle"></i>
                     </button>
@@ -105,6 +108,11 @@
             @close="showBulkBonusModal = false"
             @submitted="handleSubmitted"
         />
+        <PlayerCardModal
+            :show="showPlayerCardModal"
+            :playerData="selectedPlayerData"
+            @close="showPlayerCardModal = false"
+        />
     </div>
 </template>
 
@@ -112,15 +120,21 @@
 import { ref, onMounted, computed } from "vue";
 import api from "@/services/api";
 import BonusPenalityModal from "@/components/modals/BonusPenalityModal.vue";
+import PlayerCardModal from "@/components/modals/PlayerCardModal.vue";
+import { useGameStore } from "@/store/gameStore";
 
+const gameStore = useGameStore();
+const gamesList = ref([]); // Store games list separately
 const players = ref([]);
 const filteredPlayers = ref([]);
 const searchQuery = ref('');
 const sortDirection = ref(null); // null, 'asc', or 'desc'
 const showBonusModal = ref(false);
 const showPenaltyModal = ref(false);
+const showPlayerCardModal = ref(false);
 const selectedUserId = ref(null);
 const selectedUsername = ref('');
+const selectedPlayerData = ref(null);
 const showBulkBonusModal = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 5;
@@ -185,9 +199,47 @@ const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
 };
 
+// Fetch games list
+const fetchGames = async () => {
+    try {
+        const response = await api.get('/admin/games');
+        if (response.data && Array.isArray(response.data.games)) {
+            gamesList.value = response.data.games;
+        }
+    } catch (error) {
+        console.error('Error fetching games:', error);
+    }
+};
+
 const fetchPlayers = async () => {
     const response = await api.get("/admin/all_users");
-    players.value = response.data.users;
+    const pnl_dump = await api.get("/admin/gamepnldump");
+    
+    // Create a map to store game records for each user
+    const userGamesMap = {};
+    
+    // Group game records by user_id
+    pnl_dump.data.forEach(record => {
+        if (!userGamesMap[record.user_id]) {
+            userGamesMap[record.user_id] = [];
+        }
+        // Find the game in our games list
+        const game = gamesList.value.find(g => g.id === record.game_id);
+        userGamesMap[record.user_id].push({
+            game_id: record.game_id,
+            game_name: game ? game.name : 'Unknown Game',
+            pnl: parseFloat(record.pnl)
+        });
+    });
+    
+    // Add game records to each player's data
+    players.value = response.data.users.map(player => ({
+        ...player,
+        games: userGamesMap[player.id] || [],
+        total_pnl: (userGamesMap[player.id] || []).reduce((sum, game) => sum + game.pnl, 0)
+    }));
+
+    console.log(players.value)
     filteredPlayers.value = [...players.value];
 };
 
@@ -205,13 +257,19 @@ const openBulkBonusModal = () => {
     showBulkBonusModal.value = true;
 };
 
+const openPlayerCard = (player) => {
+    selectedPlayerData.value = player;
+    showPlayerCardModal.value = true;
+};
+
 const handleSubmitted = (data) => {
     console.log('Form submitted:', data);
     fetchPlayers();
 };
 
-onMounted(() => {
-    fetchPlayers();
+onMounted(async () => {
+    await fetchGames(); // Fetch games first
+    await fetchPlayers(); // Then fetch players
 });
 
 </script>
@@ -331,6 +389,24 @@ onMounted(() => {
 .action-buttons {
     display: flex;
     gap: 0.5rem;
+}
+
+.view-btn {
+    padding: 0.4rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    font-size: 1.1rem;
+    background-color: #2196F3;
+    color: white;
+}
+
+.view-btn:hover {
+    background-color: #1976D2;
 }
 
 .bonus-btn, .penalty-btn {
