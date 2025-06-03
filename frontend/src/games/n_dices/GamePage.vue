@@ -6,7 +6,7 @@
             <div class="description">
                 <h2>Game Description</h2>
             <p>
-                N number of dices are rolled. The sum of the dice is calculated. If the sum is equal to the player's bet, the player wins. If the sum is not equal to the player's bet, the player loses.
+                N number of dices are rolled. The sum of the dice is calculated. If the sum is equal to the player's choice, the player wins. Otherwise, the player loses the bet amount.
             </p>
             </div>
             <div class="config">
