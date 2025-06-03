@@ -8,7 +8,7 @@
                 <p>
                     Welcome to <strong>Signal Sequence</strong>—an exciting puzzle game where you decode a hidden sequence of colored signal lights! The game features five colors: Red, Blue, Green, Yellow, and Purple, each with a subtly biased probability distribution.
                 </p>
-                <p>
+                <div class="text-center mb-8">
                     The game mechanics are simple yet challenging:
                     <ul>
                         <li>Signals turn on one by one in a sequence</li>
@@ -17,7 +17,7 @@
                         <li>A single mistake ends the round</li>
                         <li>You can make up to four predictions in each game session</li>
                     </ul>
-                </p>
+                </div>
                 <p>
                     The core challenge lies in detecting the hidden color distribution across multiple games and using statistical reasoning to gain an edge. Can you master the pattern recognition and outperform chance?
                 </p>

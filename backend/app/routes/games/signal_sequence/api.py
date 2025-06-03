@@ -62,7 +62,7 @@ class GamePlayAPI(Resource):
                 "sequence": sequence,
                 "streak": session.bet_count + 1,
             }
-            new_session = GameSessionService.update_game_session(
+            new_session = GameSessionService.update_session_data(
                 session_id, updated_session
             )
         bet, wallet = BetService.create_bet(
