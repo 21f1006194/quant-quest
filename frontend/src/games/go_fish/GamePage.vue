@@ -11,8 +11,8 @@
                 <p>
                     The game offers multiple opportunities to win:
                     <ul>
-                        <li>If you guess the exact card (both suit and rank), you win 4x your bet amount!</li>
-                        <li>If you guess either the suit or rank correctly (half correct), you win 1.5x your bet amount</li>
+                        <li>If you guess the exact card (both suit and rank), you win 6x your bet amount!</li>
+                        <li>If you guess either the suit or rank correctly (half correct), you win 2x your bet amount</li>
                         <li>If your guess is completely wrong, you lose your bet amount</li>
                     </ul>
                 </p>
@@ -22,9 +22,10 @@
             </div>
             <div class="config">
                 <h3>Game Configuration</h3>
-                <p>Maximum bets per session: {{ gameData.max_bet_per_session }}</p>
-                <p>Full guess payout: {{ gameData.full_guess_payout }}x</p>
-                <p>Half guess payout: {{ gameData.half_guess_payout }}x</p>
+                <p>Maximum bets per session: {{ gameData.max_bets_per_session }}</p>
+                <p>Full guess payout: 6x</p>
+                <p>Half guess payout: 2x</p>
+                <p>Minimum Bet amount : 30</p>
             </div>
             <div class="how-to-play">
                 <h2>How to Play</h2>

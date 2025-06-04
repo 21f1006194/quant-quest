@@ -4,12 +4,12 @@
     "default_max_sessions_per_user": 150,
     "default_max_bets_per_session": 7,
     "default_is_active": true,
-    "default_difficulty": "medium",
+    "default_difficulty": "hard",
     "default_tags": "bayesian,cards",
     "default_config": {
-        "min_bet_amount": 50,
-        "half_guess_payout": 1.5,
-        "full_guess_payout": 4,
-        "payout": 4
+        "min_bet_amount": 30,
+        "half_guess_payout": 2,
+        "full_guess_payout": 6,
+        "payout": 6
     }
 }
