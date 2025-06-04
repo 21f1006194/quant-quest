@@ -8,7 +8,7 @@
                 <p>
                     Welcome to <strong>Signal Sequence</strong>—an exciting puzzle game where you decode a hidden sequence of colored signal lights! The game features five colors: Red, Blue, Green, Yellow, and Purple, each with a subtly biased probability distribution.
                 </p>
-                <div class="text-center mb-8">
+                <div class="mb-8">
                     The game mechanics are simple yet challenging:
                     <ul>
                         <li>Signals turn on one by one in a sequence</li>
@@ -18,13 +18,13 @@
                         <li>You can make up to four predictions in each game session</li>
                     </ul>
                 </div>
-                <p>
-                    The core challenge lies in detecting the hidden color distribution across multiple games and using statistical reasoning to gain an edge. Can you master the pattern recognition and outperform chance?
-                </p>
+                
             </div>
             <div class="config">
                 <h3>Game Configuration</h3>
-                <p>Maximum bets per session: {{ gameData.max_bet_per_session }}</p>
+                <p>Maximum rounds per user: {{ gameData.max_sessions_per_user }}</p>
+                <p>Bets per round: 4</p>
+                <p>Minimum bet amount: 30</p>
                 <p>Available colors: Red, Blue, Green, Yellow, Purple</p>
             </div>
             <div class="how-to-play">
@@ -105,7 +105,7 @@ const gameData = route.meta.gameData
 const template = ref(null)
 
 onMounted(async () => {
-    template.value = await getGameTemplate('go_fish')
+    template.value = await getGameTemplate('signal_sequence')
 })
 </script>
 
