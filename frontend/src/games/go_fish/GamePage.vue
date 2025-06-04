@@ -8,14 +8,12 @@
                 <p>
                     Welcome to <strong>Go Fish</strong>—an exciting card game where you test your prediction skills! At the start of each game, you'll receive 7 random cards. Your challenge is to predict the next card that will be drawn from the deck.
                 </p>
-                <p>
-                    The game offers multiple opportunities to win:
-                    <ul>
-                        <li>If you guess the exact card (both suit and rank), you win 6x your bet amount!</li>
-                        <li>If you guess either the suit or rank correctly (half correct), you win 2x your bet amount</li>
-                        <li>If your guess is completely wrong, you lose your bet amount</li>
-                    </ul>
-                </p>
+                <p>The game offers multiple opportunities to win:</p>
+                <ul>
+                    <li>If you guess the exact card (both suit and rank), you win 6x your bet amount!</li>
+                    <li>If you guess either the suit or rank correctly (half correct), you win 2x your bet amount</li>
+                    <li>If your guess is completely wrong, you lose your bet amount</li>
+                </ul>
                 <p>
                     You can make up to 7 predictions in each game session. Each prediction is a chance to increase your winnings or recover from previous losses. Will you play it safe or go for the big win?
                 </p>
